@@ -1,3 +1,4 @@
+import { AppLink } from "../routing";
 import {
   ArrowRight,
   ArrowUpRight,
@@ -97,9 +98,9 @@ export function Info({
               the lifespan of educational materials, and build a community where
               knowledge can be shared rather than wasted.
             </p>
-            <a className="button" href="/browse">
+            <AppLink className="button" href="/browse">
               Explore the bookshelf <ArrowRight size={17} />
-            </a>
+            </AppLink>
           </div>
         </section>
         <section className="section values">
@@ -163,9 +164,9 @@ export function Info({
                 </div>
               </div>
             ))}
-            <a className="button" href="/browse">
+            <AppLink className="button" href="/browse">
               Find a book <ArrowUpRight size={17} />
-            </a>
+            </AppLink>
           </article>
           <article className="form-card">
             <BookOpen size={30} />
@@ -192,13 +193,14 @@ export function Info({
                 </div>
               </div>
             ))}
-            <a className="button" href="/sell">
+            <AppLink className="button" href="/sell">
               List a book <Plus size={17} />
-            </a>
+            </AppLink>
           </article>
         </div>
         <p className="center-note">
-          Have a question? <a href="/faq">Our FAQ has a few good answers ↗</a>
+          Have a question?{" "}
+          <AppLink href="/faq">Our FAQ has a few good answers ↗</AppLink>
         </p>
       </section>
     );
@@ -226,9 +228,9 @@ export function Info({
         </div>
         <div className="bottom-cta">
           <h3>Something else on your mind?</h3>
-          <a className="text-link" href="/contact">
+          <AppLink className="text-link" href="/contact">
             Get in touch <ArrowUpRight size={18} />
-          </a>
+          </AppLink>
         </div>
       </section>
     );
@@ -342,9 +344,9 @@ export function Info({
           Contact details, operator information, retention rules and final legal
           wording are awaiting approval.
         </p>
-        <a className="text-link" href="/contact">
+        <AppLink className="text-link" href="/contact">
           Contact form <ArrowUpRight size={18} />
-        </a>
+        </AppLink>
       </section>
     );
   return (
@@ -352,9 +354,9 @@ export function Info({
       <BookOpen size={40} />
       <h1>That chapter is missing.</h1>
       <p>The page you’re looking for isn’t on this shelf.</p>
-      <a className="button" href="/">
+      <AppLink className="button" href="/">
         Back home <ArrowRight size={17} />
-      </a>
+      </AppLink>
     </section>
   );
 }

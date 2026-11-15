@@ -1,3 +1,5 @@
+import { logicalPath, appHref, visualPreview } from "./routing";
+import { AppLink } from "./routing";
 import { CheckCircle2, MapPin, Menu, Plus, UserRound, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
@@ -13,7 +15,7 @@ import { Sell } from "./pages/sell";
 import "./styles.css";
 import type { Profile } from "./types";
 function App() {
-  const [path, setPath] = useState(location.pathname),
+  const [path, setPath] = useState(logicalPath()),
     [routeKey, setRouteKey] = useState(location.pathname + location.search),
     [user, setUser] = useState<Profile | null>(null),
     [authReady, setAuthReady] = useState(false),
@@ -24,8 +26,8 @@ function App() {
     setTimeout(() => setNotice(""), 6000);
   };
   const navigate = (url: string) => {
-    history.pushState({}, "", url);
-    setPath(location.pathname);
+    history.pushState({}, "", appHref(url));
+    setPath(logicalPath());
     setRouteKey(location.pathname + location.search);
     setMobile(false);
     window.scrollTo(0, 0);
@@ -36,7 +38,7 @@ function App() {
   };
   useEffect(() => {
     const listener = () => {
-      setPath(location.pathname);
+      setPath(logicalPath());
       setRouteKey(location.pathname + location.search);
       window.scrollTo(0, 0);
     };
@@ -73,7 +75,7 @@ function App() {
           element?.focus({ preventScroll: true });
           return;
         }
-        navigate(anchor.pathname + anchor.search + anchor.hash);
+        navigate(logicalPath(anchor.pathname) + anchor.search + anchor.hash);
         if (anchor.hash)
           setTimeout(
             () =>
@@ -99,9 +101,9 @@ function App() {
   const ctx = { user, notify, navigate };
   return (
     <>
-      <a href="#main" className="skip-link">
+      <AppLink href="#main" className="skip-link">
         Skip to content
-      </a>
+      </AppLink>
       <div className="topline">
         A new chapter for your books. A little more in your pocket.{" "}
         <span>
@@ -116,32 +118,35 @@ function App() {
             aria-label="Main navigation"
             className={mobile ? "open" : ""}
           >
-            <a className={path === "/" ? "active" : ""} href="/">
+            <AppLink className={path === "/" ? "active" : ""} href="/">
               Home
-            </a>
-            <a className={path === "/browse" ? "active" : ""} href="/browse">
+            </AppLink>
+            <AppLink
+              className={path === "/browse" ? "active" : ""}
+              href="/browse"
+            >
               Browse Books
-            </a>
-            <a className={path === "/sell" ? "active" : ""} href="/sell">
+            </AppLink>
+            <AppLink className={path === "/sell" ? "active" : ""} href="/sell">
               Sell a Book
-            </a>
-            <a href="/how-it-works">How It Works</a>
-            <a href="/about">About Us</a>
+            </AppLink>
+            <AppLink href="/how-it-works">How It Works</AppLink>
+            <AppLink href="/about">About Us</AppLink>
           </nav>
           <div className="nav-actions">
             {user ? (
-              <a className="account-link" href="/account">
+              <AppLink className="account-link" href="/account">
                 <UserRound size={17} />
                 <span>My account</span>
-              </a>
+              </AppLink>
             ) : (
-              <a className="signin" href={signIn("/account")}>
+              <AppLink className="signin" href={signIn("/account")}>
                 Sign in
-              </a>
+              </AppLink>
             )}
-            <a className="button small" href="/sell">
+            <AppLink className="button small" href="/sell">
               <Plus size={16} /> Sell a book
-            </a>
+            </AppLink>
             <button
               className="menu icon-button"
               aria-label={mobile ? "Close navigation" : "Open navigation"}
@@ -154,6 +159,15 @@ function App() {
           </div>
         </div>
       </header>
+      {visualPreview && (
+        <div className="preview-banner" role="note">
+          <strong>Design preview</strong>
+          <span>
+            Sample books only. Signup, purchases and messages are disabled until
+            the live backend is connected.
+          </span>
+        </div>
+      )}
       <main key={routeKey} id="main" tabIndex={-1}>
         {[
           "/login",

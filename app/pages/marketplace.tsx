@@ -1,3 +1,5 @@
+import { appHref } from "../routing";
+import { AppLink } from "../routing";
 import {
   ArrowLeft,
   ArrowRight,
@@ -49,12 +51,12 @@ export function Home() {
             accessible to everyone.
           </p>
           <div className="hero-actions">
-            <a className="button" href="/browse">
+            <AppLink className="button" href="/browse">
               Find your next book <ArrowUpRight size={19} />
-            </a>
-            <a className="button outline" href="/sell">
+            </AppLink>
+            <AppLink className="button outline" href="/sell">
               Sell your books <ArrowRight size={18} />
-            </a>
+            </AppLink>
           </div>
           <div className="hero-note">
             <span className="mini-leaf">
@@ -124,16 +126,16 @@ export function Home() {
             <h2>Your next chapter starts here.</h2>
             <p>A few good finds, ready for a fresh set of notes.</p>
           </div>
-          <a className="text-link" href="/browse">
+          <AppLink className="text-link" href="/browse">
             Explore all books <ArrowUpRight size={18} />
-          </a>
+          </AppLink>
         </div>
         <form
           className="home-search"
           action="/browse"
           onSubmit={(e) => {
             e.preventDefault();
-            location.href = "/browse?q=" + encodeURIComponent(query);
+            location.href = appHref("/browse?q=" + encodeURIComponent(query));
           }}
         >
           <Search size={20} />
@@ -148,16 +150,19 @@ export function Home() {
           </button>
         </form>
         <div className="chips">
-          <a href="/browse">
+          <AppLink href="/browse">
             All books <ArrowUpRight size={13} />
-          </a>
+          </AppLink>
           {["IGCSE", "IB", "A Level", "GCSE"].map((x) => (
-            <a key={x} href={"/browse?curriculum=" + encodeURIComponent(x)}>
+            <AppLink
+              key={x}
+              href={"/browse?curriculum=" + encodeURIComponent(x)}
+            >
               {x}
-            </a>
+            </AppLink>
           ))}
-          <a href="/browse?subject=Mathematics">Mathematics</a>
-          <a href="/browse?subject=Biology">Sciences</a>
+          <AppLink href="/browse?subject=Mathematics">Mathematics</AppLink>
+          <AppLink href="/browse?subject=Biology">Sciences</AppLink>
         </div>
         {error ? (
           <ErrorBox message={error} />
@@ -247,9 +252,9 @@ export function Home() {
             lifespan of educational materials, and build a community where
             knowledge can be shared rather than wasted.
           </p>
-          <a className="text-link" href="/about">
+          <AppLink className="text-link" href="/about">
             Get to know TermTrove <ArrowUpRight size={18} />
-          </a>
+          </AppLink>
         </div>
       </section>
       <section className="bottom-cta">
@@ -257,9 +262,9 @@ export function Home() {
           <span className="eyebrow">YOUR BOOKS HAVE MORE TO GIVE</span>
           <h2>Finished the book? Pass on the possibility.</h2>
         </div>
-        <a className="button" href="/sell">
+        <AppLink className="button" href="/sell">
           List your first book <Plus size={18} />
-        </a>
+        </AppLink>
       </section>
     </>
   );
@@ -460,9 +465,9 @@ export function Browse() {
               <BookOpen size={38} />
               <h2>No books on this shelf yet.</h2>
               <p>Try a different search or reset your filters.</p>
-              <a href="/sell" className="button">
+              <AppLink href="/sell" className="button">
                 Be the first to list a book <Plus size={16} />
-              </a>
+              </AppLink>
             </div>
           )}
         </div>
@@ -505,9 +510,9 @@ export function Product({
   const b = data.listing;
   return (
     <section className="section product-page">
-      <a className="back" href="/browse">
+      <AppLink className="back" href="/browse">
         <ArrowLeft size={16} /> Back to the bookshelf
-      </a>
+      </AppLink>
       <div className="product-layout">
         <div>
           <div className="product-stage">
@@ -566,12 +571,12 @@ export function Product({
               </div>
             </div>
           ) : b.seller_id === user?.id ? (
-            <a
+            <AppLink
               className="button full"
               href={b.status === "available" ? "/edit/" + id : "/account"}
             >
               Manage your listing <ArrowRight size={17} />
-            </a>
+            </AppLink>
           ) : (
             <button
               disabled={b.status !== "available"}

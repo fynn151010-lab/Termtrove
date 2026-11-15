@@ -1,3 +1,5 @@
+import { logicalPath, visualPreview } from "./routing";
+import { AppLink } from "./routing";
 import {
   ArrowRight,
   ArrowUpRight,
@@ -30,15 +32,15 @@ export function SignInGate({
         of your next chapter.
       </p>
       <div className="auth-gate-actions">
-        <a href={signIn()} className="button">
+        <AppLink href={signIn()} className="button">
           Sign in <ArrowUpRight size={18} />
-        </a>
-        <a
-          href={"/register?return_to=" + encodeURIComponent(location.pathname)}
+        </AppLink>
+        <AppLink
+          href={"/register?return_to=" + encodeURIComponent(logicalPath())}
           className="button outline"
         >
           Create an account
-        </a>
+        </AppLink>
       </div>
       <small>
         Your account, orders and collection messages stay private. No other
@@ -159,9 +161,9 @@ export function AuthPage({
             If your email is already registered, you can sign in or reset your
             password.
           </p>
-          <a className="button" href={signIn(next)}>
+          <AppLink className="button" href={signIn(next)}>
             Back to sign in <ArrowRight size={17} />
-          </a>
+          </AppLink>
         </div>
       ) : (
         <form className="form-card auth-card" onSubmit={submit}>
@@ -246,11 +248,15 @@ export function AuthPage({
                 </label>
               )}
               {!register && !forgot && !reset && (
-                <a className="auth-forgot" href="/forgot-password">
+                <AppLink className="auth-forgot" href="/forgot-password">
                   Forgot your password?
-                </a>
+                </AppLink>
               )}
-              <button disabled={busy} className="button full" type="submit">
+              <button
+                disabled={busy || visualPreview}
+                className="button full"
+                type="submit"
+              >
                 {busy
                   ? "Please wait…"
                   : register
@@ -265,9 +271,9 @@ export function AuthPage({
             </>
           )}
           {reset && notice ? (
-            <a className="button full" href={signIn(next)}>
+            <AppLink className="button full" href={signIn(next)}>
               Sign in <ArrowRight size={17} />
-            </a>
+            </AppLink>
           ) : (
             <p className="auth-switch">
               {register
@@ -275,7 +281,7 @@ export function AuthPage({
                 : forgot || reset
                   ? "Remember your password?"
                   : "New to TermTrove?"}{" "}
-              <a
+              <AppLink
                 href={
                   register || forgot || reset
                     ? signIn(next)
@@ -283,13 +289,14 @@ export function AuthPage({
                 }
               >
                 {register || forgot || reset ? "Sign in" : "Create an account"}
-              </a>
+              </AppLink>
             </p>
           )}
           <div className="auth-fineprint">
-            By using TermTrove, review our <a href="/terms">Terms</a> and{" "}
-            <a href="/privacy">Privacy Policy</a>. Final approved policy text is
-            pending.
+            By using TermTrove, review our{" "}
+            <AppLink href="/terms">Terms</AppLink> and{" "}
+            <AppLink href="/privacy">Privacy Policy</AppLink>. Final approved
+            policy text is pending.
           </div>
         </form>
       )}
@@ -309,7 +316,7 @@ export function SignOutButton() {
       <button
         type="button"
         className="signout"
-        disabled={busy}
+        disabled={busy || visualPreview}
         onClick={async () => {
           setBusy(true);
           try {

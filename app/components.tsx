@@ -1,3 +1,4 @@
+import { AppLink } from "./routing";
 import { ArrowUpRight, BookOpen, Leaf, Loader2, MapPin } from "lucide-react";
 import React from "react";
 import { samples } from "../db/seed";
@@ -6,7 +7,7 @@ import { money } from "./utils";
 
 export function Brand({ footer = false }: { footer?: boolean }) {
   return (
-    <a className="brand" href="/" aria-label="TermTrove home">
+    <AppLink className="brand" href="/" aria-label="TermTrove home">
       <span
         className="logo-placeholder"
         title="Approved logo will be added here"
@@ -19,7 +20,7 @@ export function Brand({ footer = false }: { footer?: boolean }) {
         Term<span className={footer ? "" : "brand-light"}>Trove</span>
         <small>PRE-LOVED BOOKS. NEW POSSIBILITIES.</small>
       </span>
-    </a>
+    </AppLink>
   );
 }
 export function Cover({
@@ -80,7 +81,7 @@ export function Cover({
 }
 export function BookCard({ book: b }: { book: Book }) {
   return (
-    <a className="book-card" href={"/book/" + b.id}>
+    <AppLink className="book-card" href={"/book/" + b.id}>
       <div className="book-stage">
         <span className="condition">{b.condition}</span>
         <Cover book={b} />
@@ -101,7 +102,7 @@ export function BookCard({ book: b }: { book: Book }) {
         {b.original_price && <del>{money(b.original_price)}</del>}
         <span>{b.status === "available" ? "View details ↗" : b.status}</span>
       </div>
-    </a>
+    </AppLink>
   );
 }
 export function Loading() {
@@ -132,10 +133,10 @@ export function Empty({
       <BookOpen size={40} />
       <h2>{title}</h2>
       <p>{text}</p>
-      <a href={browse ? "/browse" : "/sell"} className="button">
+      <AppLink href={browse ? "/browse" : "/sell"} className="button">
         {browse ? "Explore the bookshelf" : "List your first book"}{" "}
         <ArrowUpRight size={17} />
-      </a>
+      </AppLink>
     </div>
   );
 }
@@ -155,16 +156,16 @@ export function Footer() {
         </div>
         <div>
           <h4>The bookshelf</h4>
-          <a href="/browse">Browse Books</a>
-          <a href="/sell">Sell a Book</a>
-          <a href="/account">My Account</a>
+          <AppLink href="/browse">Browse Books</AppLink>
+          <AppLink href="/sell">Sell a Book</AppLink>
+          <AppLink href="/account">My Account</AppLink>
         </div>
         <div>
           <h4>Around TermTrove</h4>
-          <a href="/about">About Us</a>
-          <a href="/how-it-works">How It Works</a>
-          <a href="/faq">FAQ</a>
-          <a href="/contact">Contact</a>
+          <AppLink href="/about">About Us</AppLink>
+          <AppLink href="/how-it-works">How It Works</AppLink>
+          <AppLink href="/faq">FAQ</AppLink>
+          <AppLink href="/contact">Contact</AppLink>
         </div>
         <div className="footer-message">
           <Leaf size={25} />
@@ -180,8 +181,8 @@ export function Footer() {
           © {new Date().getFullYear()} TermTrove. A new chapter for every book.
         </span>
         <div>
-          <a href="/terms">Terms of Service</a>
-          <a href="/privacy">Privacy Policy</a>
+          <AppLink href="/terms">Terms of Service</AppLink>
+          <AppLink href="/privacy">Privacy Policy</AppLink>
           <span>
             Built with purpose <span className="tiny-heart">♡</span>
           </span>

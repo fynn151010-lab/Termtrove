@@ -1,3 +1,4 @@
+import { AppLink } from "../routing";
 import {
   ArrowLeft,
   ArrowRight,
@@ -77,16 +78,16 @@ export function Checkout({
           with the seller using your order’s collection note. Your order is
           saved in both dashboards.
         </p>
-        <a href="/account" className="button">
+        <AppLink href="/account" className="button">
           View your order <ArrowRight size={18} />
-        </a>
+        </AppLink>
       </section>
     );
   return (
     <section className="section form-page">
-      <a className="back" href={"/book/" + id}>
+      <AppLink className="back" href={"/book/" + id}>
         <ArrowLeft size={16} /> Back to the book
-      </a>
+      </AppLink>
       <div className="page-title">
         <span className="eyebrow">ONE STEP CLOSER</span>
         <h1>Make it your next chapter.</h1>

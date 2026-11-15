@@ -1,3 +1,4 @@
+import { AppLink } from "../routing";
 import { ArrowRight, Check, ChevronDown, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { api } from "../api";
@@ -62,9 +63,9 @@ export function Dashboard({
           <h1>Hello, {user.display_name}.</h1>
           <p>Good books, new beginnings, and everything in between.</p>
         </div>
-        <a className="button" href="/sell">
+        <AppLink className="button" href="/sell">
           <Plus size={18} /> List a book
-        </a>
+        </AppLink>
       </div>
       <div className="dashboard-tabs">
         {[
@@ -169,7 +170,7 @@ export function Dashboard({
                 <div className="management-info">
                   <span className="tag">{b.status}</span>
                   <h3>
-                    <a href={"/book/" + b.id}>{b.title}</a>
+                    <AppLink href={"/book/" + b.id}>{b.title}</AppLink>
                   </h3>
                   <p>
                     {money(b.price)} · {b.condition}
@@ -178,12 +179,12 @@ export function Dashboard({
                 <div className="management-actions">
                   {b.status === "available" && (
                     <>
-                      <a
+                      <AppLink
                         className="button small outline"
                         href={"/edit/" + b.id}
                       >
                         Edit
-                      </a>
+                      </AppLink>
                       <button
                         className="button small outline"
                         onClick={() =>

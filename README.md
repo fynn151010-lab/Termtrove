@@ -122,3 +122,9 @@ Approved legal/contact wording and the logo remain pending. Existing users/data 
 ## Search discovery
 
 Public pages have descriptive titles and canonical URLs. The production build generates `robots.txt`; when a public HTTPS `APP_ORIGIN` is set, it also generates a sitemap for the homepage, browse, about, how-it-works and FAQ pages. Account and authentication pages are excluded from indexing. After deploying, verify ownership in Google Search Console and submit `/sitemap.xml`. No search-engine account is created automatically and no indexing or ranking is guaranteed.
+
+## Read-only review on a phone
+
+`npm run build:preview` creates a separate, clearly labelled visual preview in `dist/preview`, intended for GitHub Pages at `/Termtrove/`. It displays only labelled sample books so the interface can be reviewed without a backend. Account creation, authentication, listing publication, orders and messages are disabled; no sessions or successful payments are simulated. This flag is not enabled in the normal production build, which continues to require real Supabase services.
+
+The generated files are published on the `gh-pages` branch. The repository owner can activate the free Pages preview in Settings → Pages → Deploy from a branch → `gh-pages` → `/(root)`. This is a visual-review URL, not the independent live marketplace deployment. The full app still deploys through Vercel/Render/another Node host with Supabase.

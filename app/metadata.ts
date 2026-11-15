@@ -1,3 +1,4 @@
+import { visualPreview, appHref } from "./routing";
 const pages: Record<string, [string, string]> = {
   "/": [
     "TermTrove — Affordable Second-Hand Textbooks in Bangkok",
@@ -56,7 +57,8 @@ export function updateMetadata(path: string) {
     !["/login", "/register", "/forgot-password", "/reset-password"].includes(
       path,
     );
-  robots.content = indexable ? "index,follow" : "noindex,follow";
+  robots.content =
+    !visualPreview && indexable ? "index,follow" : "noindex,follow";
   let canonical = document.querySelector<HTMLLinkElement>(
     'link[rel="canonical"]',
   );
@@ -65,5 +67,5 @@ export function updateMetadata(path: string) {
     canonical.rel = "canonical";
     document.head.append(canonical);
   }
-  canonical.href = location.origin + path;
+  canonical.href = location.origin + appHref(path);
 }

@@ -15,7 +15,8 @@
     "test:integration": "tsx --test tests/integration/*.test.ts",
     "db:start": "npx supabase@2.75.0 start",
     "db:reset": "npx supabase@2.75.0 db reset",
-    "db:stop": "npx supabase@2.75.0 stop"
+    "db:stop": "npx supabase@2.75.0 stop",
+    "build:preview": "node scripts/build-preview.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.8.0",
