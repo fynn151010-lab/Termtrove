@@ -1,10 +1,22 @@
-import {execFileSync} from 'node:child_process';
-import {writeFileSync} from 'node:fs';
-const binary=process.env.SUPABASE_BIN||'supabase';
-const local=JSON.parse(execFileSync(binary,['status','--output','json'],{encoding:'utf8',stdio:['ignore','pipe','pipe']}));
-const url=local.API_URL||local.api_url;
-if(!url||!['localhost','127.0.0.1'].includes(new URL(url).hostname))throw new Error('Only local Supabase credentials may be written by this helper.');
-const key=local.ANON_KEY||local.anon_key;
-if(!key)throw new Error('The local Supabase CLI did not return an anon key.');
-writeFileSync('.env',`SUPABASE_URL=${JSON.stringify(url)}\nSUPABASE_PUBLISHABLE_KEY=${JSON.stringify(key)}\nAPP_ORIGIN=http://localhost:5173\nPORT=5173\n`,{mode:0o600});
-console.log('Wrote ignored local .env; no keys were printed.');
+import { execFileSync } from "node:child_process";
+import { writeFileSync } from "node:fs";
+const binary = process.env.SUPABASE_BIN || "supabase";
+const local = JSON.parse(
+  execFileSync(binary, ["status", "--output", "json"], {
+    encoding: "utf8",
+    stdio: ["ignore", "pipe", "pipe"],
+  }),
+);
+const url = local.API_URL || local.api_url;
+if (!url || !["localhost", "127.0.0.1"].includes(new URL(url).hostname))
+  throw new Error(
+    "Only local Supabase credentials may be written by this helper.",
+  );
+const key = local.ANON_KEY || local.anon_key;
+if (!key) throw new Error("The local Supabase CLI did not return an anon key.");
+writeFileSync(
+  ".env",
+  `SUPABASE_URL=${JSON.stringify(url)}\nSUPABASE_PUBLISHABLE_KEY=${JSON.stringify(key)}\nAPP_ORIGIN=http://localhost:5173\nPORT=5173\n`,
+  { mode: 0o600 },
+);
+console.log("Wrote ignored local .env; no keys were printed.");

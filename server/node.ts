@@ -40,6 +40,7 @@ export async function nodeHandler(
     }
     const origin =
       process.env.APP_ORIGIN ||
+      process.env.RENDER_EXTERNAL_URL ||
       "http://localhost:" + (process.env.PORT || 5173);
     const request = new Request(new URL(req.url || "/", origin), {
       method: req.method,

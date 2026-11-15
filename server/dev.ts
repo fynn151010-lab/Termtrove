@@ -3,6 +3,7 @@ import { createServer } from "node:http";
 import { readFile, stat } from "node:fs/promises";
 import { resolve, extname, sep } from "node:path";
 import { nodeHandler } from "./node";
+import { productionHeaders } from "./security";
 const port = Number(process.env.PORT || 5173),
   production = process.env.NODE_ENV === "production";
 const vite = production
@@ -20,8 +21,13 @@ const mime: Record<string, string> = {
   ".jpg": "image/jpeg",
   ".jpeg": "image/jpeg",
   ".woff2": "font/woff2",
+  ".xml": "application/xml",
+  ".txt": "text/plain",
 };
 const server = createServer(async (req, res) => {
+  if (production)
+    for (const [name, value] of Object.entries(productionHeaders))
+      res.setHeader(name, value);
   res.setHeader("X-Content-Type-Options", "nosniff");
   res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
   if (req.url?.startsWith("/api/")) return nodeHandler(req, res);

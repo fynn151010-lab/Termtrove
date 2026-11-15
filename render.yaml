@@ -1,0 +1,18 @@
+# Alternative standard Node deployment. No service is created until the owner imports this Blueprint.
+services:
+  - type: web
+    name: termtrove
+    runtime: node
+    plan: free
+    buildCommand: npm ci && npm run build
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: 22.16.0
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_PUBLISHABLE_KEY
+        sync: false
+# Render sets RENDER_EXTERNAL_URL; APP_ORIGIN may override it for a custom domain.
+# PostgreSQL and photos stay in Supabase, so filesystem persistence is not required.

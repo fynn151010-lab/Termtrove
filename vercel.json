@@ -13,7 +13,7 @@
       "destination": "/api?__route=:path*"
     },
     {
-      "source": "/((?!api/|assets/).*)",
+      "source": "/((?!api/|assets/|robots\\.txt$|sitemap\\.xml$).*)",
       "destination": "/index.html"
     }
   ],

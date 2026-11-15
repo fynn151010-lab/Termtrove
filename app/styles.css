@@ -3902,3 +3902,41 @@ dl + .callout {
     font-size: 10px;
   }
 }
+.skip-link {
+  position: fixed;
+  left: 16px;
+  top: -100px;
+  padding: 12px 18px;
+  border-radius: 5px;
+  background: var(--green);
+  color: white;
+  z-index: 100;
+  font-size: 12px;
+}
+.skip-link:focus {
+  top: 12px;
+}
+main:focus {
+  outline: none;
+}
+.cover .cover-title.long-title {
+  font-size: 13px;
+  word-break: normal;
+  letter-spacing: 0;
+}
+.cover.large .cover-title.long-title {
+  font-size: 20px;
+}
+.hero .rear .cover-title.long-title {
+  font-size: 19px;
+}
+@media (max-width: 850px) {
+  .hero .rear .cover-title.long-title {
+    font-size: 16px;
+  }
+}
+@media (max-width: 640px) {
+  .hero .rear .cover-title.long-title {
+    font-size: 17px;
+  }
+}

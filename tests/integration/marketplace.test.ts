@@ -10,7 +10,7 @@ if (!["localhost", "127.0.0.1"].includes(new URL(config.supabaseUrl).hostname))
     "Integration tests only run against a local Supabase instance; production data is never changed.",
   );
 const prefix = crypto.randomUUID().slice(0, 8),
-  pass = "TermTrove-local-test-Only-123!";
+  pass = " TermTrove-local-test-Only-123! ";
 const png = Buffer.from(
   "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRZkAAAAASUVORK5CYII=",
   "base64",

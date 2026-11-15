@@ -9,7 +9,7 @@ export function readConfig(): AppConfig {
       process.env.SUPABASE_PUBLISHABLE_KEY ||
       process.env.SUPABASE_ANON_KEY ||
       "",
-    origin = process.env.APP_ORIGIN || "";
+    origin = process.env.APP_ORIGIN || process.env.RENDER_EXTERNAL_URL || "";
   if (
     !supabaseUrl ||
     !supabaseKey ||

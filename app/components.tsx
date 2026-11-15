@@ -53,7 +53,16 @@ export function Cover({
         {book.curriculum || "TERMTROVE"}
         <span>STUDENT EDITION</span>
       </div>
-      <div className="cover-title">{sample?.tag || book.subject || "BOOK"}</div>
+      <div
+        className={
+          "cover-title " +
+          ((sample?.tag || book.subject || "BOOK").length > 10
+            ? "long-title"
+            : "")
+        }
+      >
+        {sample?.tag || book.subject || "BOOK"}
+      </div>
       <span className="cover-subtitle">{sample?.subtitle || book.title}</span>
       <div className="cover-art">
         <i />

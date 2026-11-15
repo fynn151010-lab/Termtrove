@@ -1,3 +1,4 @@
+import { normalizePhoto } from "./images";
 import { readConfig, type AppConfig } from "./config";
 import { requestClient } from "./supabase";
 import { authRoute } from "./auth";
@@ -48,6 +49,18 @@ export async function handleAPI(
     }
     const json = (data: unknown, status = 200) =>
       finish(Response.json(data, { status }));
+    if (path === "/api/health" && method === "GET") {
+      const result = await db
+        .from("marketplace_listings")
+        .select("id")
+        .limit(1);
+      if (result.error)
+        fail(
+          503,
+          "The marketplace database is not ready. Check connection settings and apply migrations.",
+        );
+      return json({ status: "ok" });
+    }
     if (path === "/api/me" && method === "GET") {
       const u = await user(false);
       if (!u) return json({ user: null });
@@ -151,26 +164,16 @@ export async function handleAPI(
         file.size < 12
       )
         fail(400, "Choose a JPG, PNG or WebP image under 3 MB.");
-      const bytes = new Uint8Array(await file.arrayBuffer());
-      const type =
-        bytes[0] === 255 && bytes[1] === 216 && bytes[2] === 255
-          ? "image/jpeg"
-          : bytes[0] === 137 &&
-              bytes[1] === 80 &&
-              bytes[2] === 78 &&
-              bytes[3] === 71
-            ? "image/png"
-            : String.fromCharCode(...bytes.slice(0, 4)) === "RIFF" &&
-                String.fromCharCode(...bytes.slice(8, 12)) === "WEBP"
-              ? "image/webp"
-              : "";
-      if (!type) fail(400, "Only JPG, PNG and WebP photos are supported.");
+      const bytes = await normalizePhoto(
+        new Uint8Array(await file.arrayBuffer()),
+      );
       const id = crypto.randomUUID(),
         object_key = u.id + "/" + id;
       checked(
-        await db.storage
-          .from("book-images")
-          .upload(object_key, bytes, { contentType: type, upsert: false }),
+        await db.storage.from("book-images").upload(object_key, bytes, {
+          contentType: "image/webp",
+          upsert: false,
+        }),
       );
       const saved = await db
         .from("images")

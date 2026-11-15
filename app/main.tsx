@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { api, signIn } from "./api";
 import { AuthPage } from "./auth";
+import { updateMetadata } from "./metadata";
 import { Brand, Footer, Loading } from "./components";
 import { Dashboard } from "./pages/account";
 import { Checkout } from "./pages/checkout";
@@ -28,6 +29,10 @@ function App() {
     setRouteKey(location.pathname + location.search);
     setMobile(false);
     window.scrollTo(0, 0);
+    setTimeout(
+      () => document.getElementById("main")?.focus({ preventScroll: true }),
+      0,
+    );
   };
   useEffect(() => {
     const listener = () => {
@@ -36,6 +41,10 @@ function App() {
       window.scrollTo(0, 0);
     };
     window.addEventListener("popstate", listener);
+    const escape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setMobile(false);
+    };
+    window.addEventListener("keydown", escape);
     const click = (event: MouseEvent) => {
       const anchor = (event.target as HTMLElement).closest("a");
       if (
@@ -45,15 +54,31 @@ function App() {
         !anchor.hasAttribute("download") &&
         !event.metaKey &&
         !event.ctrlKey &&
+        !event.shiftKey &&
+        !event.altKey &&
+        !event.defaultPrevented &&
+        event.button === 0 &&
         !anchor.pathname.startsWith("/sign")
       ) {
         event.preventDefault();
+        if (
+          anchor.hash &&
+          anchor.pathname === location.pathname &&
+          anchor.search === location.search
+        ) {
+          const element = document.getElementById(
+            decodeURIComponent(anchor.hash.slice(1)),
+          );
+          element?.scrollIntoView({ behavior: "smooth" });
+          element?.focus({ preventScroll: true });
+          return;
+        }
         navigate(anchor.pathname + anchor.search + anchor.hash);
         if (anchor.hash)
           setTimeout(
             () =>
               document
-                .querySelector(anchor.hash)
+                .getElementById(decodeURIComponent(anchor.hash.slice(1)))
                 ?.scrollIntoView({ behavior: "smooth" }),
             30,
           );
@@ -66,12 +91,17 @@ function App() {
       .finally(() => setAuthReady(true));
     return () => {
       window.removeEventListener("popstate", listener);
+      window.removeEventListener("keydown", escape);
       document.removeEventListener("click", click);
     };
   }, []);
+  useEffect(() => updateMetadata(path), [path]);
   const ctx = { user, notify, navigate };
   return (
     <>
+      <a href="#main" className="skip-link">
+        Skip to content
+      </a>
       <div className="topline">
         A new chapter for your books. A little more in your pocket.{" "}
         <span>
@@ -81,7 +111,11 @@ function App() {
       <header>
         <div className="nav-wrap">
           <Brand />
-          <nav className={mobile ? "open" : ""}>
+          <nav
+            id="primary-navigation"
+            aria-label="Main navigation"
+            className={mobile ? "open" : ""}
+          >
             <a className={path === "/" ? "active" : ""} href="/">
               Home
             </a>
@@ -110,7 +144,9 @@ function App() {
             </a>
             <button
               className="menu icon-button"
-              aria-label="Toggle navigation"
+              aria-label={mobile ? "Close navigation" : "Open navigation"}
+              aria-expanded={mobile}
+              aria-controls="primary-navigation"
               onClick={() => setMobile(!mobile)}
             >
               {mobile ? <X /> : <Menu />}
@@ -118,7 +154,7 @@ function App() {
           </div>
         </div>
       </header>
-      <main key={routeKey}>
+      <main key={routeKey} id="main" tabIndex={-1}>
         {[
           "/login",
           "/register",

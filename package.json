@@ -8,8 +8,8 @@
   },
   "scripts": {
     "dev": "tsx server/dev.ts",
-    "build": "vite build",
-    "start": "NODE_ENV=production tsx server/dev.ts",
+    "build": "vite build && node scripts/seo.mjs",
+    "start": "tsx server/start.ts",
     "typecheck": "tsc --noEmit",
     "test": "tsx --test tests/*.test.ts",
     "test:integration": "tsx --test tests/integration/*.test.ts",
@@ -18,13 +18,14 @@
     "db:stop": "npx supabase@2.75.0 stop"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.95.0",
     "@supabase/ssr": "^0.8.0",
+    "@supabase/supabase-js": "^2.95.0",
     "cookie": "^1.0.2",
     "dotenv": "^16.6.0",
     "lucide-react": "^0.468.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
+    "sharp": "^0.34.5",
     "tsx": "^4.20.0"
   },
   "devDependencies": {

@@ -21,11 +21,11 @@ Do not load sample data in production unless deliberately requested. `supabase/s
 3. Vercel should detect Vite. Root directory: repository root. Build: `npm run build`. Output: `dist/client`. Node: 22+. `vercel.json` already maps `/api/*` to the server function and other application routes to the frontend.
 4. Add **server-side** environment variables to Production (and separately to Preview if used):
 
-| Variable | Value |
-| --- | --- |
-| `SUPABASE_URL` | Your Supabase project URL |
-| `SUPABASE_PUBLISHABLE_KEY` | Your publishable or legacy anon key |
-| `APP_ORIGIN` | Your exact `https://…vercel.app` production origin, without a path |
+| Variable                   | Value                                                              |
+| -------------------------- | ------------------------------------------------------------------ |
+| `SUPABASE_URL`             | Your Supabase project URL                                          |
+| `SUPABASE_PUBLISHABLE_KEY` | Your publishable or legacy anon key                                |
+| `APP_ORIGIN`               | Your exact `https://…vercel.app` production origin, without a path |
 
 Do not prefix these with `VITE_`: the browser communicates only with same-origin API routes. No Supabase credentials or session tokens are bundled into the frontend. `APP_ORIGIN` is used for CSRF checks and confirmation/recovery links, not inferred from untrusted request headers.
 
@@ -47,13 +47,19 @@ For email links that must work across browsers/devices, use the server’s token
 **Confirm signup**
 
 ```html
-<a href="{{ .SiteURL }}/api/auth/confirm?token_hash={{ .TokenHash }}&type=signup">Confirm your TermTrove account</a>
+<a
+  href="{{ .SiteURL }}/api/auth/confirm?token_hash={{ .TokenHash }}&type=signup"
+  >Confirm your TermTrove account</a
+>
 ```
 
 **Reset password**
 
 ```html
-<a href="{{ .SiteURL }}/api/auth/confirm?token_hash={{ .TokenHash }}&type=recovery">Reset your TermTrove password</a>
+<a
+  href="{{ .SiteURL }}/api/auth/confirm?token_hash={{ .TokenHash }}&type=recovery"
+  >Reset your TermTrove password</a
+>
 ```
 
 Keep the token in the email link only. Do not log it or commit actual links. `/api/auth/confirm` exchanges the token and redirects to `/account` or `/reset-password`. Session cookies are HttpOnly, SameSite=Lax and Secure on HTTPS. Successful password reset signs out sessions; the user signs in with the new password.
@@ -86,3 +92,9 @@ For existing real data, privately export the old database and image objects, est
 - Contact submissions are private records in `contact_messages`, available to the maintainer in Supabase administration. There is no email-forwarding service or admin UI.
 - Payment is **on collection only**. No online payment, fee, commission or payout is configured.
 - A custom domain is optional. No domain purchase is necessary to deploy to a provider-assigned URL.
+
+## Alternative: Render’s free Node service
+
+`render.yaml` is included for a standard Node host if Vercel’s free plan does not fit your use. In your own Render account, import the repository as a Blueprint and keep **Free** selected. Supply the Supabase URL and publishable key; never add a service-role key. The app uses Render’s automatic `RENDER_EXTERNAL_URL` as its origin unless you explicitly set `APP_ORIGIN`. Configure Supabase’s Site URL and allowed email redirects for that exact public domain.
+
+This option stores all durable records and images in Supabase, so Render’s ephemeral service disk does not hold marketplace data. Free services may sleep when idle and have usage limits; verify current account terms and stop if a paid upgrade or payment method is required. The `/api/health` check verifies that the configured marketplace database can be read; a missing connection or migration fails clearly. No Render service or account is created automatically.

@@ -38,7 +38,7 @@ npm run build
 npm start
 ```
 
-For Vercel, import the GitHub repository and set the server environment variables. The checked-in `vercel.json` supplies routing and security headers. See [Deployment](docs/DEPLOYMENT.md) for the exact Supabase and hosting steps, email templates, and launch checks.
+For Vercel, import the GitHub repository and set the server environment variables. A free-plan Render Blueprint is also included for a standard Node deployment; account eligibility and limits must be checked before deploying. The checked-in `vercel.json` supplies routing and security headers. See [Deployment](docs/DEPLOYMENT.md) for the exact Supabase and hosting steps, email templates, and launch checks.
 
 ## Fully local real backend
 
@@ -110,7 +110,7 @@ docs/DEPLOYMENT.md      Account setup, free-plan constraints and launch checks
 - Buyer or seller can cancel a pending order, restoring inventory. Only the seller can confirm collection and payment, which completes the order and marks the book sold.
 - Collection messages are visible only to the buyer and seller. No residential address or email is added automatically to a public listing.
 - Password sessions use HttpOnly, SameSite=Lax cookies, Secure over HTTPS; token refresh writes cookies back to each response. Mutation requests require the configured application Origin. Auth callbacks validate same-origin return destinations.
-- Image uploads verify JPEG/PNG/WebP signatures, limit each upload to 3 MB and permit 1–5 photos per listing. Private Storage bucket policies also enforce owner paths and MIME/size limits. The 3 MB limit keeps requests below Vercel’s function body limit.
+- Image uploads decode JPEG/PNG/WebP, cap input at 20 megapixels, remove embedded EXIF/GPS metadata, resize to at most 2,000 pixels per side, and store WebP. Each upload is limited to 3 MB; listings accept 1–5 photos. Private Storage bucket policies also enforce owner paths and MIME/size limits. The 3 MB limit keeps requests below Vercel’s function body limit.
 - Payment is on collection. “Paid” means the seller confirmed in-person payment, not a processor-verified charge. No online payment is simulated.
 
 ## External setup and launch status
@@ -118,3 +118,7 @@ docs/DEPLOYMENT.md      Account setup, free-plan constraints and launch checks
 A live independent deployment requires **your own Supabase project, SMTP/email-sending configuration and hosting account**. No hosted credentials, paid subscriptions or domains are created by this repository. Local integration success does not verify your production email delivery or hosting configuration.
 
 Approved legal/contact wording and the logo remain pending. Existing users/data from the earlier Site are not silently moved: see the verified-account migration guidance in [Deployment](docs/DEPLOYMENT.md).
+
+## Search discovery
+
+Public pages have descriptive titles and canonical URLs. The production build generates `robots.txt`; when a public HTTPS `APP_ORIGIN` is set, it also generates a sitemap for the homepage, browse, about, how-it-works and FAQ pages. Account and authentication pages are excluded from indexing. After deploying, verify ownership in Google Search Console and submit `/sitemap.xml`. No search-engine account is created automatically and no indexing or ranking is guaranteed.

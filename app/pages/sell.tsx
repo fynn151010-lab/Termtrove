@@ -49,7 +49,7 @@ export function Sell({
     [preview, setPreview] = useState(false),
     [loaded, setLoaded] = useState(!id);
   useEffect(() => {
-    if (id)
+    if (id && user)
       api("/listings/" + id)
         .then((d) => {
           if (d.listing.seller_id !== user?.id)
@@ -62,6 +62,7 @@ export function Sell({
               : "",
             images: d.images.map((i: any) => i.id),
           });
+          setError("");
           setLoaded(true);
         })
         .catch((e) => setError(e.message));

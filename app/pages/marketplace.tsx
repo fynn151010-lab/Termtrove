@@ -175,10 +175,12 @@ export function Home() {
             text="Be the first to pass on a book and help another learner get started."
           />
         )}
-        <p className="sample-note">
-          Sample listings are labelled for exploration. Add your book to help
-          start the community.
-        </p>
+        {books.some((book) => book.is_demo) && (
+          <p className="sample-note">
+            Sample listings are labelled for exploration. Add your book to help
+            start the community.
+          </p>
+        )}
       </section>
       <section className="how-section" id="how-it-works">
         <div className="section-heading">
