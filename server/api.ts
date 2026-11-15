@@ -16,7 +16,11 @@ export async function handleAPI(
   req: Request,
   providedConfig?: AppConfig,
 ): Promise<Response> {
-  let finish = (response: Response) => response;
+  let finish = (response: Response) => {
+    response.headers.set("Cache-Control", "private, no-store");
+    response.headers.set("X-Content-Type-Options", "nosniff");
+    return response;
+  };
   try {
     let config: AppConfig;
     try {

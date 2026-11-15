@@ -125,6 +125,7 @@ function listing(images = [photoId]) {
 }
 
 test("independent sign-up confirms email, signs in and persists HttpOnly sessions", async () => {
+  assert.equal((await anonymous.request("/health")).status, 200);
   for (const [browser, role] of [
     [seller, "seller"],
     [buyer, "buyer"],
@@ -167,7 +168,9 @@ test("photos persist privately; anonymous writes and invalid image types are rej
   );
   assert.equal((await seller.request("/images", "POST", bad)).status, 400);
   photoId = await upload(seller);
-  assert.equal((await seller.request("/images/" + photoId)).status, 200);
+  const storedPhoto = await seller.request("/images/" + photoId);
+  assert.equal(storedPhoto.status, 200);
+  assert.equal(storedPhoto.response.headers.get("content-type"), "image/webp");
   assert.equal((await anonymous.request("/images/" + photoId)).status, 404);
   assert.equal(
     (await anonymous.request("/listings", "POST", listing())).status,

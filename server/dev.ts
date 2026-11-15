@@ -66,7 +66,9 @@ const server = createServer(async (req, res) => {
       "Cache-Control",
       file.endsWith("index.html")
         ? "no-cache"
-        : "public,max-age=31536000,immutable",
+        : file.includes(sep + "assets" + sep)
+          ? "public,max-age=31536000,immutable"
+          : "public,max-age=3600",
     );
     res.end(req.method === "HEAD" ? undefined : await readFile(file));
   } catch {
