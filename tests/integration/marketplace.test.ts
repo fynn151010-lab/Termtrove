@@ -12,7 +12,7 @@ if (!["localhost", "127.0.0.1"].includes(new URL(config.supabaseUrl).hostname))
 const prefix = crypto.randomUUID().slice(0, 8),
   pass = " TermTrove-local-test-Only-123! ";
 const png = Buffer.from(
-  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRZkAAAAASUVORK5CYII=",
+  "iVBORw0KGgoAAAANSUhEUgAAABgAAAAgCAIAAACHPC9vAAAACXBIWXMAAAPoAAAD6AG1e1JrAAAAL0lEQVRIiWOQsDegCmIYNUhiNIwkRtOR/WgWsR8tRgxGS0iD0VpEYrSClBjajQgA/VmVECVHEqYAAAAASUVORK5CYII=",
   "base64",
 );
 class Browser {
