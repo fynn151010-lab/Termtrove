@@ -117,7 +117,7 @@ docs/DEPLOYMENT.md      Account setup, free-plan constraints and launch checks
 
 A live independent deployment requires **your own Supabase project, SMTP/email-sending configuration and hosting account**. No hosted credentials, paid subscriptions or domains are created by this repository. Local integration success does not verify your production email delivery or hosting configuration.
 
-Approved legal/contact wording and the logo remain pending. Existing users/data from the earlier Site are not silently moved: see the verified-account migration guidance in [Deployment](docs/DEPLOYMENT.md).
+Approved legal/contact wording remains pending. The approved logo is implemented. Existing users/data from the earlier Site are not silently moved: see the verified-account migration guidance in [Deployment](docs/DEPLOYMENT.md).
 
 ## Search discovery
 

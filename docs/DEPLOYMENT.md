@@ -66,6 +66,14 @@ Keep the token in the email link only. Do not log it or commit actual links. `/a
 
 ## 4. Verify the real production deployment
 
+Run the read-only deployment check first:
+
+```sh
+npm run check:deployment -- https://YOUR-PUBLIC-HOST
+```
+
+It checks public routing, database health, anonymous session behavior, dashboard access protection, security headers, the approved logo, and production sitemap/crawler settings. It does not create users, send email, upload files, reserve books or write database records. A failed check exits with a nonzero status. Passing still requires the account, email and transaction checks below.
+
 Use two ordinary email accounts you control; complete email verification for each. Do not publish sensitive test information.
 
 1. Open the homepage in a private window; browse and search without signing in.
@@ -96,5 +104,7 @@ For existing real data, privately export the old database and image objects, est
 ## Alternative: Render’s free Node service
 
 `render.yaml` is included for a standard Node host if Vercel’s free plan does not fit your use. In your own Render account, import the repository as a Blueprint and keep **Free** selected. Supply the Supabase URL and publishable key; never add a service-role key. The app uses Render’s automatic `RENDER_EXTERNAL_URL` as its origin unless you explicitly set `APP_ORIGIN`. Configure Supabase’s Site URL and allowed email redirects for that exact public domain.
+
+Direct setup links: [Supabase project setup](https://supabase.com/dashboard/new) · [Deploy this repository on Render](https://render.com/deploy?repo=https://github.com/fynn151010-lab/Termtrove). These links open the providers’ setup forms; they do not buy a plan or deploy by themselves.
 
 This option stores all durable records and images in Supabase, so Render’s ephemeral service disk does not hold marketplace data. Free services may sleep when idle and have usage limits; verify current account terms and stop if a paid upgrade or payment method is required. The `/api/health` check verifies that the configured marketplace database can be read; a missing connection or migration fails clearly. No Render service or account is created automatically.
