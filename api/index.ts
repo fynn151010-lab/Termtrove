@@ -1,8 +1,12 @@
-import type { VercelRequest, VercelResponse } from "@vercel/node";
+import type { IncomingMessage, ServerResponse } from "node:http";
 import { nodeHandler } from "../server/node";
 export const config = { api: { bodyParser: false } };
-export default function handler(req: VercelRequest, res: VercelResponse) {
-  const route = req.query.__route;
+type PlatformRequest = IncomingMessage & {
+  body?: unknown;
+  query?: Record<string, string | string[] | undefined>;
+};
+export default function handler(req: PlatformRequest, res: ServerResponse) {
+  const route = req.query?.__route;
   if (typeof route === "string") {
     const url = new URL(
       req.url || "/",
