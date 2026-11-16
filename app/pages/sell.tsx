@@ -1,5 +1,5 @@
 import { ArrowRight, Check, Leaf, Upload, X } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { api } from "../api";
 import { SignInGate } from "../auth";
 import { BookCard, ErrorBox, Loading } from "../components";
@@ -53,7 +53,6 @@ export function Sell({
     [loaded, setLoaded] = useState(!id),
     [loadError, setLoadError] = useState(""),
     [retry, setRetry] = useState(0);
-  const attachedPhotos = useRef(new Set<string>());
   useEffect(() => {
     const controller = new AbortController();
     if (id && user) {
@@ -72,9 +71,6 @@ export function Sell({
               : "",
             images: d.images.map((i: any) => i.id),
           });
-          attachedPhotos.current = new Set(
-            d.images.map((image: { id: string }) => image.id),
-          );
           setError("");
           setLoaded(true);
         })
@@ -135,30 +131,6 @@ export function Sell({
       setPreview(false);
     } finally {
       setBusy(false);
-    }
-  }
-  async function removePhoto(image: string) {
-    if (attachedPhotos.current.has(image)) {
-      update(
-        "images",
-        form.images.filter((value: string) => value !== image),
-      );
-      return;
-    }
-    setBusy(true);
-    setError("");
-    setUploadLabel("Removing photo…");
-    try {
-      await api("/images/" + image, { method: "DELETE" });
-      setForm((previous: any) => ({
-        ...previous,
-        images: previous.images.filter((value: string) => value !== image),
-      }));
-    } catch (error: any) {
-      setError(error.message);
-    } finally {
-      setBusy(false);
-      setUploadLabel("");
     }
   }
   return (
@@ -370,43 +342,25 @@ export function Sell({
                   </span>
                 </label>
                 <div className="uploaded-photos wide">
-                  {form.images.map((image: string, index: number) => (
+                  {form.images.map((image: string) => (
                     <div key={image}>
                       <img
                         src={"/api/images/" + image}
-                        alt={"Book photo " + (index + 1)}
+                        alt="Uploaded book photograph"
                       />
                       <button
                         type="button"
                         disabled={busy}
-                        className="remove-photo"
-                        aria-label={"Remove photo " + (index + 1)}
-                        onClick={() => {
-                          void removePhoto(image);
-                        }}
+                        aria-label="Remove photo"
+                        onClick={() =>
+                          update(
+                            "images",
+                            form.images.filter((v: string) => v !== image),
+                          )
+                        }
                       >
                         <X size={15} />
                       </button>
-                      {index === 0 ? (
-                        <span className="photo-cover">Cover photo</span>
-                      ) : (
-                        <button
-                          type="button"
-                          className="make-cover"
-                          aria-label={"Use photo " + (index + 1) + " as cover"}
-                          disabled={busy}
-                          onClick={() =>
-                            update("images", [
-                              image,
-                              ...form.images.filter(
-                                (value: string) => value !== image,
-                              ),
-                            ])
-                          }
-                        >
-                          Use as cover
-                        </button>
-                      )}
                     </div>
                   ))}
                 </div>

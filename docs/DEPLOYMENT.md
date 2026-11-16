@@ -16,16 +16,6 @@ No hosted Supabase project or Vercel account is created by the source code. The 
 
 Do not load sample data in production unless deliberately requested. `supabase/seed.sql` is optional local sample content and cannot be purchased.
 
-### Upgrading an already running app: photo removal
-
-Fresh deployments apply every migration before starting the API. When upgrading an older running app, deploy photo removal in two stages:
-
-1. Apply `20261116151038_support_private_photo_removal.sql`. It adds a removal flag and owner-only RPCs while keeping the old upload policy compatible.
-2. Deploy the metadata-first image uploader and removal API from this revision; wait for the deploy to become live and verify it.
-3. Apply `20261116151046_require_registered_photo_storage.sql`. It requires image ownership metadata before object upload and a pending-removal flag before object deletion.
-
-Do not apply the final storage-policy migration while the old object-first uploader is still running. A removed photo stays locked against publication until its stored object has been deleted. Photos attached to a listing cannot be deleted directly. Replacing photos first saves the listing, then removes objects that are no longer attached; a failed listing edit leaves the existing photos intact. Cleanup after a storage outage may need a retry; abandoned drafts are not silently purged on a timer.
-
 ### Optional Gmail sender for a small pilot
 
 If the owner chooses their existing Gmail address, Supabase SMTP can use `smtp.gmail.com`, port `587` (STARTTLS), the full Gmail address as both username and sender address, and an owner-created Google app password. Set sender name to `TermTrove`. Google requires 2-Step Verification and may restrict app-password availability for some accounts. Keep the app password only in Supabase's SMTP Password field; never use or share the account's normal password. This authorizes account access through that credential, so the owner must create and enter it themselves and can revoke it in Google Account settings. Gmail's sending limits still apply, and actual delivery must be verified before relying on it for onboarding.
