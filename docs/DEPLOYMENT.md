@@ -87,7 +87,7 @@ For existing real data, privately export the old database and image objects, est
 
 ## 6. Pending launch content
 
-- The approved logo has not been supplied. `Brand` in `app/components.tsx` intentionally shows `LOGO HERE`.
+- The approved logo is implemented in `Brand` (`app/components.tsx`), using the original image at `public/brand/termtrove-logo.png`.
 - Terms, Privacy Policy, legal operator/contact details and retention policy still need approved wording. Their placeholders are preserved.
 - Contact submissions are private records in `contact_messages`, available to the maintainer in Supabase administration. There is no email-forwarding service or admin UI.
 - Payment is **on collection only**. No online payment, fee, commission or payout is configured.

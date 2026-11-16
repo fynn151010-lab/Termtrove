@@ -4,7 +4,7 @@ An independent marketplace for pre-loved educational books in Bangkok. Students 
 
 **Source repository:** https://github.com/fynn151010-lab/Termtrove
 
-This is the complete application source, not a GitHub Pages mockup. The existing forest-green design, educational mission and pages are preserved. The approved logo has not been provided, so the original `LOGO HERE` placeholder remains.
+This is the complete application source, not a GitHub Pages mockup. The existing forest-green design, educational mission and pages are preserved. The approved book-and-box logo is included at `public/brand/termtrove-logo.png` and used in the header and footer. It was extracted unchanged from the TermTrove Google document’s Implementation Roadmap tab. The original image retains its white background; CSS frames its whitespace without changing the artwork.
 
 ## Stack
 

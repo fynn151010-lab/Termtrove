@@ -8,13 +8,14 @@ import { money } from "./utils";
 export function Brand({ footer = false }: { footer?: boolean }) {
   return (
     <AppLink className="brand" href="/" aria-label="TermTrove home">
-      <span
-        className="logo-placeholder"
-        title="Approved logo will be added here"
-      >
-        LOGO
-        <br />
-        HERE
+      <span className="brand-logo">
+        <img
+          src={import.meta.env.BASE_URL + "brand/termtrove-logo.png"}
+          alt=""
+          width="48"
+          height="48"
+          decoding="async"
+        />
       </span>
       <span>
         Term<span className={footer ? "" : "brand-light"}>Trove</span>
