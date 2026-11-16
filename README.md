@@ -104,6 +104,7 @@ docs/DEPLOYMENT.md      Account setup, free-plan constraints and launch checks
 - User identity is verified by Supabase Auth on the server. User IDs supplied in headers or bodies cannot select a different account.
 - Anonymous users read public listings only. Private profiles, account emails, order details and collection notes are restricted to the correct account/participants.
 - Public seller information exposes only the display name and account UUID, not the private profile or email.
+- Public seller names are synchronized into a separate read-only table; its view uses caller permissions and never bypasses private-profile row security. API function grants are explicitly restricted even on hosted projects with permissive defaults.
 - The application uses only the publishable/anon key so PostgreSQL RLS applies. Direct database writes to listings/orders are denied; explicitly granted functions validate identity and ownership.
 - `save_listing` locks the listing and images, checks ownership and stored objects, and updates details/photos atomically. Reserved listings cannot be edited or archived.
 - `place_order` locks one book, checks its state, rejects self/sample purchases and creates one exclusive reservation in the same database transaction. A partial unique index prevents multiple active orders per book.

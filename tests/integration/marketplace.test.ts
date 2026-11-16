@@ -226,6 +226,36 @@ test("real listing creation, search, filters and ownership work through PostgreS
     .select("*")
     .eq("id", profileId);
   assert.equal(privateProfile.data?.length, 0);
+  const guest = createClient(config.supabaseUrl, config.supabaseKey, {
+    auth: { persistSession: false },
+  });
+  const blockedRpc = await guest.rpc("place_order", {
+    p_listing_id: bookId,
+    p_collection_note: "Anonymous callers cannot reserve a book.",
+  });
+  assert.match(blockedRpc.error?.message || "", /permission denied for function/i);
+  const changedName = await seller.request("/me", "PATCH", {
+    display_name: "Updated seller",
+    school: "Private school detail",
+  });
+  assert.equal(changedName.status, 200);
+  const publicName = await guest
+    .from("public_sellers")
+    .select("*")
+    .eq("id", profileId)
+    .single();
+  assert.deepEqual(publicName.data, { id: profileId, display_name: "Updated seller" });
+  assert.equal(
+    (await anonymous.request("/listings/" + bookId)).data.listing.seller_name,
+    "Updated seller",
+  );
+  const forgedPublicName = await raw
+    .from("seller_profiles")
+    .update({ display_name: "Forged seller" })
+    .eq("id", profileId);
+  assert.ok(forgedPublicName.error, "API roles cannot write public seller names directly");
+  const privateField = await guest.from("public_sellers").select("school");
+  assert.ok(privateField.error, "The public seller projection has no private school column");
   const direct = await raw
     .from("listings")
     .update({ price: 1 })
