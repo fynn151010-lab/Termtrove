@@ -37,6 +37,15 @@ export async function nodeHandler(
         }
         payload = Buffer.concat(chunks);
       }
+      if (payload && payload.length > 4 * 1024 * 1024) {
+        res.writeHead(413, { "Content-Type": "application/json" });
+        res.end(
+          JSON.stringify({
+            error: "Request too large. Photos must be under 3 MB.",
+          }),
+        );
+        return;
+      }
     }
     const origin =
       process.env.APP_ORIGIN ||
