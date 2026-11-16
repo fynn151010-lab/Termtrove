@@ -4045,6 +4045,44 @@ dd {
 .book-card.preview-only .view-book {
   display: none;
 }
+.uploaded-photos > div {
+  width: 112px;
+  height: auto;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+}
+.uploaded-photos img {
+  height: 105px;
+}
+.uploaded-photos .remove-photo {
+  top: 3px;
+  right: 3px;
+  width: 30px;
+  height: 30px;
+  align-items: center;
+  justify-content: center;
+}
+.uploaded-photos .make-cover,
+.photo-cover {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: static;
+  width: 100%;
+  min-height: 32px;
+  height: auto;
+  margin-top: 6px;
+  padding: 5px 3px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: #fff;
+  color: var(--green);
+  font-size: 10px;
+}
+.photo-cover {
+  background: #edf2df;
+}
 .thumbnails {
   flex-wrap: wrap;
 }
@@ -4106,9 +4144,14 @@ dd {
     min-height: 44px;
     font-size: 11px !important;
   }
-  .uploaded-photos button {
+  .uploaded-photos .remove-photo {
     width: 44px;
     height: 44px;
+  }
+  .uploaded-photos .make-cover,
+  .photo-cover {
+    min-height: 44px;
+    font-size: 12px;
   }
   .topline {
     text-align: center;
