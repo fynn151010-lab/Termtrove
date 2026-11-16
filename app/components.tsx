@@ -1,6 +1,6 @@
 import { AppLink } from "./routing";
 import { ArrowUpRight, BookOpen, Leaf, Loader2, MapPin } from "lucide-react";
-import React from "react";
+import React, { useState } from "react";
 import { samples } from "../db/seed";
 import type { Book } from "./types";
 import { money } from "./utils";
@@ -31,15 +31,28 @@ export function Cover({
   book: Book | any;
   large?: boolean;
 }) {
+  const [failedPhoto, setFailedPhoto] = useState("");
+  const imageUrl = "/api/images/" + book.image_id;
   const sample = samples.find(
     (b) => b.id === book.id || b.title === book.title,
   );
-  return book.image_id ? (
+  return book.image_id && failedPhoto === imageUrl ? (
+    <div
+      className="photo-unavailable"
+      role="img"
+      aria-label={"Photo unavailable for " + book.title}
+    >
+      <BookOpen size={30} aria-hidden="true" />
+      <span>Photo unavailable</span>
+    </div>
+  ) : book.image_id ? (
     <img
       className={"book-photo " + (large ? "large" : "")}
-      src={"/api/images/" + book.image_id}
+      src={imageUrl}
       alt={book.title}
-      loading="lazy"
+      loading={large ? "eager" : "lazy"}
+      decoding="async"
+      onError={() => setFailedPhoto(imageUrl)}
     />
   ) : (
     <div
@@ -80,9 +93,15 @@ export function Cover({
     </div>
   );
 }
-export function BookCard({ book: b }: { book: Book }) {
-  return (
-    <AppLink className="book-card" href={"/book/" + b.id}>
+export function BookCard({
+  book: b,
+  interactive = true,
+}: {
+  book: Book;
+  interactive?: boolean;
+}) {
+  const content = (
+    <>
       <div className="book-stage">
         <span className="condition">{b.condition}</span>
         <Cover book={b} />
@@ -101,9 +120,22 @@ export function BookCard({ book: b }: { book: Book }) {
       <div className="book-price">
         <strong>{money(b.price)}</strong>
         {b.original_price && <del>{money(b.original_price)}</del>}
-        <span>{b.status === "available" ? "View details ↗" : b.status}</span>
+        <span>
+          {interactive
+            ? b.status === "available"
+              ? "View details ↗"
+              : b.status
+            : "Listing preview"}
+        </span>
       </div>
+    </>
+  );
+  return interactive ? (
+    <AppLink className="book-card" href={"/book/" + b.id}>
+      {content}
     </AppLink>
+  ) : (
+    <article className="book-card preview-only">{content}</article>
   );
 }
 export function Loading() {
@@ -113,10 +145,25 @@ export function Loading() {
     </div>
   );
 }
-export function ErrorBox({ message }: { message: string }) {
+export function ErrorBox({
+  message,
+  onRetry,
+}: {
+  message: string;
+  onRetry?: () => void;
+}) {
   return (
     <div className="error" role="alert">
-      {message}
+      <span>{message}</span>
+      {onRetry && (
+        <button
+          type="button"
+          className="button small outline"
+          onClick={onRetry}
+        >
+          Try again
+        </button>
+      )}
     </div>
   );
 }

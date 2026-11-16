@@ -1,7 +1,7 @@
 import { logicalPath, appHref, visualPreview } from "./routing";
 import { AppLink } from "./routing";
 import { CheckCircle2, MapPin, Menu, Plus, UserRound, X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { api, signIn } from "./api";
 import { AuthPage } from "./auth";
@@ -14,6 +14,18 @@ import { Browse, Home, Product } from "./pages/marketplace";
 import { Sell } from "./pages/sell";
 import "./styles.css";
 import type { Profile } from "./types";
+import { scrollBehavior } from "./utils";
+function scrollToFragment(hash: string, focus = false) {
+  let id;
+  try {
+    id = decodeURIComponent(hash.slice(1));
+  } catch {
+    return;
+  }
+  const element = document.getElementById(id);
+  element?.scrollIntoView({ behavior: scrollBehavior() });
+  if (focus) element?.focus({ preventScroll: true });
+}
 function App() {
   const [path, setPath] = useState(logicalPath()),
     [routeKey, setRouteKey] = useState(location.pathname + location.search),
@@ -21,9 +33,16 @@ function App() {
     [authReady, setAuthReady] = useState(false),
     [mobile, setMobile] = useState(false),
     [notice, setNotice] = useState("");
+  const noticeTimer = useRef<ReturnType<typeof setTimeout> | undefined>(
+      undefined,
+    ),
+    menuButton = useRef<HTMLButtonElement>(null),
+    navigation = useRef<HTMLElement>(null),
+    header = useRef<HTMLElement>(null);
   const notify = (msg: string) => {
+    clearTimeout(noticeTimer.current);
     setNotice(msg);
-    setTimeout(() => setNotice(""), 6000);
+    noticeTimer.current = setTimeout(() => setNotice(""), 6000);
   };
   const navigate = (url: string) => {
     history.pushState({}, "", appHref(url));
@@ -40,13 +59,19 @@ function App() {
     const listener = () => {
       setPath(logicalPath());
       setRouteKey(location.pathname + location.search);
+      setMobile(false);
       window.scrollTo(0, 0);
+      setTimeout(
+        () => document.getElementById("main")?.focus({ preventScroll: true }),
+        0,
+      );
     };
     window.addEventListener("popstate", listener);
-    const escape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setMobile(false);
+    const expired = () => {
+      setUser(null);
+      notify("Your session has ended. Please sign in again.");
     };
-    window.addEventListener("keydown", escape);
+    window.addEventListener("termtrove:session-expired", expired);
     const click = (event: MouseEvent) => {
       const anchor = (event.target as HTMLElement).closest("a");
       if (
@@ -60,7 +85,7 @@ function App() {
         !event.altKey &&
         !event.defaultPrevented &&
         event.button === 0 &&
-        !anchor.pathname.startsWith("/sign")
+        !anchor.pathname.startsWith("/api/")
       ) {
         event.preventDefault();
         if (
@@ -68,22 +93,11 @@ function App() {
           anchor.pathname === location.pathname &&
           anchor.search === location.search
         ) {
-          const element = document.getElementById(
-            decodeURIComponent(anchor.hash.slice(1)),
-          );
-          element?.scrollIntoView({ behavior: "smooth" });
-          element?.focus({ preventScroll: true });
+          scrollToFragment(anchor.hash, true);
           return;
         }
         navigate(logicalPath(anchor.pathname) + anchor.search + anchor.hash);
-        if (anchor.hash)
-          setTimeout(
-            () =>
-              document
-                .getElementById(decodeURIComponent(anchor.hash.slice(1)))
-                ?.scrollIntoView({ behavior: "smooth" }),
-            30,
-          );
+        if (anchor.hash) setTimeout(() => scrollToFragment(anchor.hash), 30);
       }
     };
     document.addEventListener("click", click);
@@ -93,10 +107,34 @@ function App() {
       .finally(() => setAuthReady(true));
     return () => {
       window.removeEventListener("popstate", listener);
-      window.removeEventListener("keydown", escape);
+      window.removeEventListener("termtrove:session-expired", expired);
       document.removeEventListener("click", click);
+      clearTimeout(noticeTimer.current);
     };
   }, []);
+  useEffect(() => {
+    if (!mobile) return;
+    navigation.current?.querySelector<HTMLAnchorElement>("a")?.focus();
+    const escape = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      setMobile(false);
+      menuButton.current?.focus();
+    };
+    const outside = (event: PointerEvent) => {
+      if (!header.current?.contains(event.target as Node)) setMobile(false);
+    };
+    const resize = () => {
+      if (window.innerWidth > 640) setMobile(false);
+    };
+    window.addEventListener("keydown", escape);
+    window.addEventListener("resize", resize);
+    document.addEventListener("pointerdown", outside);
+    return () => {
+      window.removeEventListener("keydown", escape);
+      window.removeEventListener("resize", resize);
+      document.removeEventListener("pointerdown", outside);
+    };
+  }, [mobile]);
   useEffect(() => updateMetadata(path), [path]);
   const ctx = { user, notify, navigate };
   return (
@@ -110,32 +148,39 @@ function App() {
           Made for Bangkok’s learning community <MapPin size={12} />
         </span>
       </div>
-      <header>
+      <header ref={header}>
         <div className="nav-wrap">
           <Brand />
           <nav
             id="primary-navigation"
+            ref={navigation}
             aria-label="Main navigation"
             className={mobile ? "open" : ""}
           >
-            <AppLink className={path === "/" ? "active" : ""} href="/">
-              Home
-            </AppLink>
-            <AppLink
-              className={path === "/browse" ? "active" : ""}
-              href="/browse"
-            >
-              Browse Books
-            </AppLink>
-            <AppLink className={path === "/sell" ? "active" : ""} href="/sell">
-              Sell a Book
-            </AppLink>
-            <AppLink href="/how-it-works">How It Works</AppLink>
-            <AppLink href="/about">About Us</AppLink>
+            {[
+              ["/", "Home"],
+              ["/browse", "Browse Books"],
+              ["/sell", "Sell a Book"],
+              ["/how-it-works", "How It Works"],
+              ["/about", "About Us"],
+            ].map(([href, label]) => (
+              <AppLink
+                key={href}
+                href={href}
+                className={path === href ? "active" : ""}
+                aria-current={path === href ? "page" : undefined}
+              >
+                {label}
+              </AppLink>
+            ))}
           </nav>
           <div className="nav-actions">
             {user ? (
-              <AppLink className="account-link" href="/account">
+              <AppLink
+                className="account-link"
+                href="/account"
+                aria-label="My account"
+              >
                 <UserRound size={17} />
                 <span>My account</span>
               </AppLink>
@@ -149,6 +194,7 @@ function App() {
             </AppLink>
             <button
               className="menu icon-button"
+              ref={menuButton}
               aria-label={mobile ? "Close navigation" : "Open navigation"}
               aria-expanded={mobile}
               aria-controls="primary-navigation"

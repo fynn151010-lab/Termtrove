@@ -1,4 +1,17 @@
-@import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;450;500;550;600;650;700&family=Libre+Caslon+Display&display=swap");
+@font-face {
+  font-family: "DM Sans";
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url("./assets/fonts/dm-sans-variable.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Libre Caslon Display";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("./assets/fonts/libre-caslon-display.woff2") format("woff2");
+}
 :root {
   font-family: "DM Sans", sans-serif;
   color: #183d30;
@@ -132,6 +145,7 @@ em {
   color: #c8d7bf;
 }
 header {
+  position: relative;
   background: #fffefa;
   border-bottom: 1px solid var(--border);
 }
@@ -2711,7 +2725,7 @@ dl + .callout {
   .nav-wrap nav {
     display: none;
     position: absolute;
-    top: 108px;
+    top: 100%;
     left: 0;
     right: 0;
     background: #fffefa;
@@ -3956,6 +3970,176 @@ main:focus {
 .preview-banner strong {
   white-space: nowrap;
   font-weight: 650;
+}
+
+/* Keep small screens readable and resilient without changing the visual system. */
+.book-card h3,
+.product-copy h1,
+.management-info h3,
+.order-card h3,
+.summary-book h3,
+.dashboard h1,
+.description,
+.conversation-messages p,
+.order-note p,
+.success-page strong,
+dd {
+  overflow-wrap: anywhere;
+}
+.form-layout > *,
+.checkout-layout > *,
+.product-layout > *,
+.market-layout > *,
+.management-info,
+.summary-book > div {
+  min-width: 0;
+}
+.order-top {
+  flex-wrap: wrap;
+}
+.order-top > span {
+  overflow-wrap: anywhere;
+}
+.error {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.error > span {
+  flex: 1;
+  min-width: 160px;
+}
+.photo-unavailable {
+  width: 80%;
+  min-height: 190px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 12px;
+  padding: 20px;
+  color: #6b7b62;
+  background: #e9eddf;
+  border-radius: 5px;
+  text-align: center;
+  font-size: 12px;
+}
+.book-card.preview-only {
+  cursor: default;
+}
+.management-cover .photo-unavailable {
+  width: 100%;
+  min-height: 100%;
+  padding: 4px;
+  gap: 3px;
+  font-size: 8px;
+}
+.summary-book .photo-unavailable {
+  width: 80px;
+  min-height: 115px;
+  flex-shrink: 0;
+  font-size: 10px;
+  padding: 8px;
+}
+.book-card.preview-only .view-book {
+  display: none;
+}
+.thumbnails {
+  flex-wrap: wrap;
+}
+.thumbnails button[aria-pressed="true"] {
+  border-color: var(--green);
+  box-shadow: 0 0 0 2px #dbe7ba;
+}
+@media (max-width: 640px) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+  select,
+  textarea {
+    font-size: 16px !important;
+    min-height: 44px;
+  }
+  button,
+  .button,
+  .signin,
+  .account-link,
+  summary {
+    min-height: 44px;
+  }
+  .signin,
+  .account-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+  }
+  .nav-actions {
+    gap: 8px;
+  }
+  .menu {
+    width: 44px;
+    padding: 10px;
+    flex-shrink: 0;
+  }
+  .nav-actions .signin {
+    font-size: 12px;
+  }
+  .nav-wrap nav {
+    max-height: calc(100dvh - 110px);
+    overflow-y: auto;
+  }
+  .nav-wrap nav a,
+  .nav-wrap nav a:first-child {
+    font-size: 14px;
+  }
+  .form-card label,
+  .auth-card label,
+  .filters label {
+    font-size: 13px;
+  }
+  .form-card label small,
+  .form-intro,
+  .upload-zone > span {
+    font-size: 11px;
+  }
+  .filter-toggle {
+    min-height: 44px;
+    font-size: 11px !important;
+  }
+  .uploaded-photos button {
+    width: 44px;
+    height: 44px;
+  }
+  .topline {
+    text-align: center;
+    line-height: 1.5;
+  }
+}
+@media (max-width: 480px) {
+  .form-fields {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .form-fields label {
+    grid-column: 1 / -1;
+  }
+}
+@media (max-width: 370px) {
+  .nav-wrap {
+    gap: 6px;
+  }
+  .nav-wrap .brand {
+    font-size: 22px;
+  }
+  .nav-wrap .brand small {
+    display: none;
+  }
+  .brand {
+    gap: 8px;
+  }
+  .brand-logo {
+    width: 34px;
+    height: 34px;
+  }
 }
 .preview-banner span {
   color: #70815f;

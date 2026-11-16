@@ -4,6 +4,8 @@ import { api } from "../api";
 import { SignInGate } from "../auth";
 import { BookCard, ErrorBox, Loading } from "../components";
 import type { Profile } from "../types";
+import { preparePhoto } from "../photos";
+import { scrollBehavior } from "../utils";
 
 const subjects = [
   "Biology",
@@ -46,12 +48,19 @@ export function Sell({
     }),
     [error, setError] = useState(""),
     [busy, setBusy] = useState(false),
+    [uploadLabel, setUploadLabel] = useState(""),
     [preview, setPreview] = useState(false),
-    [loaded, setLoaded] = useState(!id);
+    [loaded, setLoaded] = useState(!id),
+    [loadError, setLoadError] = useState(""),
+    [retry, setRetry] = useState(0);
   useEffect(() => {
-    if (id && user)
-      api("/listings/" + id)
+    const controller = new AbortController();
+    if (id && user) {
+      setLoaded(false);
+      setLoadError("");
+      api("/listings/" + id, { signal: controller.signal })
         .then((d) => {
+          if (controller.signal.aborted) return;
           if (d.listing.seller_id !== user?.id)
             throw new Error("You can only edit your own listing.");
           setForm({
@@ -65,25 +74,34 @@ export function Sell({
           setError("");
           setLoaded(true);
         })
-        .catch((e) => setError(e.message));
-  }, [id, user?.id]);
+        .catch((e) => {
+          if (!controller.signal.aborted) {
+            setLoadError(e.message);
+            setLoaded(true);
+          }
+        });
+    }
+    return () => controller.abort();
+  }, [id, user?.id, retry]);
   if (!authReady) return <Loading />;
   if (!user) return <SignInGate />;
   const update = (k: string, v: any) => setForm((f: any) => ({ ...f, [k]: v }));
   async function upload(files: FileList | null) {
     if (!files) return;
-    if (files.length + form.images.length > 5) {
+    const selected = Array.from(files);
+    if (selected.length + form.images.length > 5) {
       setError("You can add up to 5 photos.");
       return;
     }
     setBusy(true);
     setError("");
     try {
-      for (const file of Array.from(files)) {
-        if (file.size > 3 * 1024 * 1024)
-          throw new Error("Each photo must be under 3 MB.");
+      for (const [index, file] of selected.entries()) {
+        setUploadLabel(`Preparing photo ${index + 1} of ${selected.length}…`);
+        const photo = await preparePhoto(file);
+        setUploadLabel(`Uploading photo ${index + 1} of ${selected.length}…`);
         const fd = new FormData();
-        fd.set("image", file);
+        fd.set("image", photo);
         const result = await api("/images", { method: "POST", body: fd });
         setForm((f: any) => ({ ...f, images: [...f.images, result.id] }));
       }
@@ -91,6 +109,7 @@ export function Sell({
       setError(e.message);
     } finally {
       setBusy(false);
+      setUploadLabel("");
     }
   }
   async function publish() {
@@ -128,11 +147,17 @@ export function Sell({
         <div>
           {!loaded ? (
             <Loading />
+          ) : loadError ? (
+            <ErrorBox
+              message={loadError}
+              onRetry={() => setRetry((value) => value + 1)}
+            />
           ) : preview ? (
             <div className="form-card">
               <span className="eyebrow">LISTING PREVIEW</span>
               <div className="preview-card">
                 <BookCard
+                  interactive={false}
                   book={{
                     ...form,
                     id: "preview",
@@ -176,7 +201,7 @@ export function Sell({
                 }
                 setError("");
                 setPreview(true);
-                window.scrollTo({ top: 150, behavior: "smooth" });
+                window.scrollTo({ top: 150, behavior: scrollBehavior() });
               }}
             >
               <h2>Tell us about your book</h2>
@@ -296,10 +321,13 @@ export function Sell({
                   Book photos *
                   <span className="upload-zone">
                     <Upload size={25} />
-                    <strong>
-                      {busy ? "Uploading…" : "Choose photos of your book"}
+                    <strong role="status" aria-live="polite">
+                      {uploadLabel || "Choose photos of your book"}
                     </strong>
-                    <span>JPG, PNG or WebP · up to 3 MB each · 1–5 photos</span>
+                    <span>
+                      JPG, PNG or WebP · up to 20 MB each · 1–5 photos. Large
+                      photos are resized before uploading.
+                    </span>
                     <input
                       disabled={busy}
                       type="file"
@@ -322,6 +350,7 @@ export function Sell({
                       />
                       <button
                         type="button"
+                        disabled={busy}
                         aria-label="Remove photo"
                         onClick={() =>
                           update(

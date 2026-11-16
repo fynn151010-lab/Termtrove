@@ -26,7 +26,7 @@ export function Checkout({
   navigate: (p: string) => void;
   notify: (s: string) => void;
 }) {
-  const { data, error } = useBook(id),
+  const { data, error, reload } = useBook(id),
     [note, setNote] = useState(""),
     [accepted, setAccepted] = useState(false),
     [busy, setBusy] = useState(false),
@@ -36,7 +36,7 @@ export function Checkout({
   if (error)
     return (
       <section className="section">
-        <ErrorBox message={error} />
+        <ErrorBox message={error} onRetry={reload} />
       </section>
     );
   if (!data) return <Loading />;

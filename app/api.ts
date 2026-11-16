@@ -1,4 +1,5 @@
 import { logicalPath, visualPreview } from "./routing";
+import { ApiError, requestJSON } from "./http-client";
 export async function api(path: string, options: RequestInit = {}) {
   if (visualPreview) {
     if (options.method && options.method !== "GET")
@@ -7,24 +8,21 @@ export async function api(path: string, options: RequestInit = {}) {
       );
     return (await import("./preview")).previewRead(path);
   }
-  const response = await fetch("/api" + path, {
-    ...options,
-    headers:
-      options.body instanceof FormData
-        ? {}
-        : { "Content-Type": "application/json" },
-    credentials: "same-origin",
-  });
-  let data: any;
   try {
-    data = await response.json();
-  } catch {
-    throw new Error(
-      "The server returned an unexpected response. Please try again.",
+    return await requestJSON(
+      "/api" + path,
+      options,
+      options.body instanceof FormData ? 120_000 : 45_000,
     );
+  } catch (error) {
+    if (
+      error instanceof ApiError &&
+      error.status === 401 &&
+      !path.startsWith("/auth/")
+    )
+      window.dispatchEvent(new Event("termtrove:session-expired"));
+    throw error;
   }
-  if (!response.ok) throw new Error(data.error || "Something went wrong.");
-  return data;
 }
 export const signIn = (path = logicalPath()) =>
   "/login?return_to=" + encodeURIComponent(path);

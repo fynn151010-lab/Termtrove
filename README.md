@@ -114,6 +114,7 @@ docs/DEPLOYMENT.md      Account setup, free-plan constraints and launch checks
 - Collection messages are visible only to the buyer and seller. No residential address or email is added automatically to a public listing.
 - Password sessions use HttpOnly, SameSite=Lax cookies, Secure over HTTPS; token refresh writes cookies back to each response. Mutation requests require the configured application Origin. Auth callbacks validate same-origin return destinations.
 - Image uploads decode JPEG/PNG/WebP, cap input at 20 megapixels, remove embedded EXIF/GPS metadata, resize to at most 2,000 pixels per side, and store WebP. Each upload is limited to 3 MB; listings accept 1–5 photos. Private Storage bucket policies also enforce owner paths and MIME/size limits. The 3 MB limit keeps requests below Vercel’s function body limit.
+- The listing form prepares phone photos on the user's device first: supported source files up to 20 MB are reduced to at most 2,000 pixels per side and below the 3 MB upload limit. Orientation is preserved; server-side decoding, limits and metadata removal remain authoritative. HEIC files must be exported as JPEG if the browser does not provide a supported format.
 - Payment is on collection. “Paid” means the seller confirmed in-person payment, not a processor-verified charge. No online payment is simulated.
 
 ## External setup and launch status
@@ -125,6 +126,12 @@ Approved legal/contact wording remains pending. The approved logo is implemented
 ## Search discovery
 
 Public pages have descriptive titles and canonical URLs. The production build generates `robots.txt`; when a public HTTPS `APP_ORIGIN` is set, it also generates a sitemap for the homepage, browse, about, how-it-works and FAQ pages. Account and authentication pages are excluded from indexing. After deploying, verify ownership in Google Search Console and submit `/sitemap.xml`. No search-engine account is created automatically and no indexing or ranking is guaranteed.
+
+## Interface and font assets
+
+The existing green-and-cream design uses self-hosted DM Sans and Libre Caslon Display, served as WOFF2 with `font-display: swap`. The font outlines are from [Google Fonts](https://github.com/google/fonts), packaged without changing their artwork; SIL Open Font License notices are preserved in `public/licenses/`. Normal page rendering no longer requires Google Fonts network requests.
+
+Mobile controls have readable 16 px input text and at least 44 px touch targets. The navigation supports keyboard focus and Escape, respects reduced-motion preferences, and identifies the current page. Browse URLs retain filters and sort order. Read failures have retry controls; writes are never automatically retried because a lost response can still mean a saved action. Draft listing previews do not navigate away from the form.
 
 ## Read-only review on a phone
 

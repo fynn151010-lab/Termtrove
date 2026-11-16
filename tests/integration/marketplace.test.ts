@@ -233,7 +233,10 @@ test("real listing creation, search, filters and ownership work through PostgreS
     p_listing_id: bookId,
     p_collection_note: "Anonymous callers cannot reserve a book.",
   });
-  assert.match(blockedRpc.error?.message || "", /permission denied for function/i);
+  assert.match(
+    blockedRpc.error?.message || "",
+    /permission denied for function/i,
+  );
   const changedName = await seller.request("/me", "PATCH", {
     display_name: "Updated seller",
     school: "Private school detail",
@@ -244,7 +247,10 @@ test("real listing creation, search, filters and ownership work through PostgreS
     .select("*")
     .eq("id", profileId)
     .single();
-  assert.deepEqual(publicName.data, { id: profileId, display_name: "Updated seller" });
+  assert.deepEqual(publicName.data, {
+    id: profileId,
+    display_name: "Updated seller",
+  });
   assert.equal(
     (await anonymous.request("/listings/" + bookId)).data.listing.seller_name,
     "Updated seller",
@@ -253,9 +259,15 @@ test("real listing creation, search, filters and ownership work through PostgreS
     .from("seller_profiles")
     .update({ display_name: "Forged seller" })
     .eq("id", profileId);
-  assert.ok(forgedPublicName.error, "API roles cannot write public seller names directly");
+  assert.ok(
+    forgedPublicName.error,
+    "API roles cannot write public seller names directly",
+  );
   const privateField = await guest.from("public_sellers").select("school");
-  assert.ok(privateField.error, "The public seller projection has no private school column");
+  assert.ok(
+    privateField.error,
+    "The public seller projection has no private school column",
+  );
   const direct = await raw
     .from("listings")
     .update({ price: 1 })
@@ -421,4 +433,72 @@ test("real password-recovery email resets password and invalidates the old crede
   assert.equal((await other.login("other", next)).status, 200);
   assert.equal((await other.request("/auth/logout", "POST", {})).status, 200);
   assert.equal((await other.request("/me")).data.user, null);
+});
+
+test("email confirmation and recovery can finish in a fresh browser without the original PKCE cookie", async () => {
+  const originalBrowser = new Browser();
+  const signup = await originalBrowser.signup("cross-device");
+  assert.equal(signup.status, 200);
+  const confirmationLink = new URL(
+    await emailLink(prefix + "-cross-device@example.test"),
+  );
+  const confirmationHash = confirmationLink.searchParams.get("token");
+  assert.ok(
+    confirmationHash,
+    "The real local email includes its one-time verification hash",
+  );
+  const newBrowser = new Browser();
+  const confirmed = await newBrowser.request(
+    "/auth/confirm?type=signup&token_hash=" +
+      encodeURIComponent(confirmationHash),
+  );
+  assert.equal(confirmed.status, 303);
+  assert.equal(
+    confirmed.response.headers.get("location"),
+    config.origin + "/account",
+  );
+  assert.equal(
+    (await newBrowser.request("/me")).data.user.email,
+    prefix + "-cross-device@example.test",
+  );
+  assert.equal((await originalBrowser.request("/me")).data.user, null);
+  const replay = await new Browser().request(
+    "/auth/confirm?type=signup&token_hash=" +
+      encodeURIComponent(confirmationHash),
+  );
+  assert.equal(
+    replay.response.headers.get("location"),
+    config.origin + "/login?error=confirmation",
+  );
+
+  await newBrowser.request("/auth/forgot-password", "POST", {
+    email: prefix + "-cross-device@example.test",
+  });
+  const recoveryHash = new URL(
+    await emailLink(prefix + "-cross-device@example.test"),
+  ).searchParams.get("token");
+  assert.ok(recoveryHash);
+  const recoveryBrowser = new Browser();
+  const recovery = await recoveryBrowser.request(
+    "/auth/confirm?type=recovery&token_hash=" +
+      encodeURIComponent(recoveryHash),
+  );
+  assert.equal(
+    recovery.response.headers.get("location"),
+    config.origin + "/reset-password",
+  );
+  const newPassword = "Fresh-browser-local-Password-789!";
+  assert.equal(
+    (
+      await recoveryBrowser.request("/auth/reset-password", "POST", {
+        password: newPassword,
+      })
+    ).status,
+    200,
+  );
+  assert.equal((await new Browser().login("cross-device")).status, 401);
+  assert.equal(
+    (await new Browser().login("cross-device", newPassword)).status,
+    200,
+  );
 });

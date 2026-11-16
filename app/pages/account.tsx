@@ -1,6 +1,6 @@
 import { AppLink } from "../routing";
 import { ArrowRight, Check, ChevronDown, Plus } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { api } from "../api";
 import { SignInGate, SignOutButton } from "../auth";
 import { Cover, Empty, ErrorBox, Loading } from "../components";
@@ -29,10 +29,19 @@ export function Dashboard({
     } | null>(null),
     [name, setName] = useState(user?.display_name || ""),
     [school, setSchool] = useState(user?.school || "");
-  const load = () =>
-    api("/dashboard")
-      .then(setData)
+  const confirmationBox = useRef<HTMLDivElement>(null);
+  const load = () => {
+    setError("");
+    return api("/dashboard")
+      .then((value) => {
+        setData(value);
+        setError("");
+      })
       .catch((e) => setError(e.message));
+  };
+  useEffect(() => {
+    if (confirm) confirmationBox.current?.focus();
+  }, [confirm]);
   useEffect(() => {
     if (user) load();
   }, [user?.id]);
@@ -67,7 +76,11 @@ export function Dashboard({
           <Plus size={18} /> List a book
         </AppLink>
       </div>
-      <div className="dashboard-tabs">
+      <div
+        className="dashboard-tabs"
+        role="group"
+        aria-label="Account sections"
+      >
         {[
           ["listings", "My listings"],
           ["purchases", "My purchases"],
@@ -77,15 +90,28 @@ export function Dashboard({
           <button
             key={id}
             className={tab === id ? "selected" : ""}
+            aria-pressed={tab === id}
             onClick={() => setTab(id)}
           >
             {label}
           </button>
         ))}
       </div>
-      {error && <ErrorBox message={error} />}{" "}
+      {error && (
+        <ErrorBox
+          message={error}
+          onRetry={() => {
+            void load();
+          }}
+        />
+      )}{" "}
       {confirm && (
-        <div className="confirm-box" role="alert">
+        <div
+          className="confirm-box"
+          role="alert"
+          tabIndex={-1}
+          ref={confirmationBox}
+        >
           <div>
             <strong>{confirm.label}</strong>
             <p>This will update the listing and any associated order.</p>
@@ -111,6 +137,7 @@ export function Dashboard({
           onSubmit={async (e) => {
             e.preventDefault();
             setPending("profile");
+            setError("");
             try {
               await api("/me", {
                 method: "PATCH",
@@ -158,7 +185,9 @@ export function Dashboard({
           <SignOutButton />
         </form>
       ) : !data ? (
-        <Loading />
+        error ? null : (
+          <Loading />
+        )
       ) : tab === "listings" ? (
         data.listings.length ? (
           <div className="management-list">

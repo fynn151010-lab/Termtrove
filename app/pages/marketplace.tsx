@@ -18,18 +18,34 @@ import { api, signIn } from "../api";
 import { BookCard, Cover, Empty, ErrorBox, Loading } from "../components";
 import type { Book, Profile } from "../types";
 import { money } from "../utils";
+import {
+  browseQuery,
+  defaultFilters,
+  readBrowseFilters,
+} from "../browse-filters";
 
 export function Home() {
   const [books, setBooks] = useState<Book[]>([]),
     [homeLoading, setHomeLoading] = useState(true),
     [error, setError] = useState(""),
-    [query, setQuery] = useState("");
+    [query, setQuery] = useState(""),
+    [retry, setRetry] = useState(0);
   useEffect(() => {
-    api("/listings?status=available")
-      .then((d) => setBooks(d.listings.slice(0, 4)))
-      .catch((e) => setError(e.message))
-      .finally(() => setHomeLoading(false));
-  }, []);
+    const controller = new AbortController();
+    setHomeLoading(true);
+    setError("");
+    api("/listings?status=available", { signal: controller.signal })
+      .then((d) => {
+        if (!controller.signal.aborted) setBooks(d.listings.slice(0, 4));
+      })
+      .catch((e) => {
+        if (!controller.signal.aborted) setError(e.message);
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setHomeLoading(false);
+      });
+    return () => controller.abort();
+  }, [retry]);
   return (
     <>
       <section className="hero">
@@ -141,6 +157,8 @@ export function Home() {
           <Search size={20} />
           <input
             aria-label="Search books"
+            type="search"
+            maxLength={200}
             placeholder="Search by title, author, subject or ISBN…"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
@@ -165,7 +183,10 @@ export function Home() {
           <AppLink href="/browse?subject=Biology">Sciences</AppLink>
         </div>
         {error ? (
-          <ErrorBox message={error} />
+          <ErrorBox
+            message={error}
+            onRetry={() => setRetry((value) => value + 1)}
+          />
         ) : books.length ? (
           <div className="book-grid">
             {books.map((b) => (
@@ -270,29 +291,39 @@ export function Home() {
   );
 }
 export function Browse() {
-  const initial = new URLSearchParams(location.search),
-    [filters, setFilters] = useState<Record<string, string>>({
-      q: initial.get("q") || "",
-      curriculum: initial.get("curriculum") || "",
-      subject: initial.get("subject") || "",
-      status: "available",
-      condition: "",
-      min: "",
-      max: "",
-      sort: "recent",
-    }),
+  const [filters, setFilters] = useState(() =>
+      readBrowseFilters(location.search),
+    ),
     [books, setBooks] = useState<Book[]>([]),
     [loading, setLoading] = useState(true),
     [error, setError] = useState(""),
-    [showFilters, setShowFilters] = useState(false);
+    [showFilters, setShowFilters] = useState(false),
+    [retry, setRetry] = useState(0);
   useEffect(() => {
     let current = true;
+    const controller = new AbortController();
     setLoading(true);
+    setError("");
+    history.replaceState(
+      history.state,
+      "",
+      location.pathname + "?" + browseQuery(filters),
+    );
     const timer = setTimeout(() => {
-      const q = new URLSearchParams(
-        Object.entries(filters).filter(([k, v]) => v),
-      );
-      api("/listings?" + q)
+      if (
+        filters.min &&
+        filters.max &&
+        Number(filters.min) > Number(filters.max)
+      ) {
+        setError(
+          "The minimum price must be less than or equal to the maximum price.",
+        );
+        setLoading(false);
+        return;
+      }
+      api("/listings?" + browseQuery(filters, true), {
+        signal: controller.signal,
+      })
         .then((d) => {
           if (current) {
             setBooks(d.listings);
@@ -305,9 +336,12 @@ export function Browse() {
     return () => {
       current = false;
       clearTimeout(timer);
+      controller.abort();
     };
-  }, [filters]);
-  const set = (k: string, v: string) => setFilters({ ...filters, [k]: v });
+  }, [filters, retry]);
+  const set = (k: string, v: string) =>
+    setFilters((previous) => ({ ...previous, [k]: v }));
+  const reset = () => setFilters({ ...defaultFilters });
   return (
     <section className="section browse-page">
       <div className="page-title">
@@ -322,37 +356,33 @@ export function Browse() {
         <Search />
         <input
           aria-label="Search listings"
+          type="search"
+          maxLength={200}
           placeholder="Title, author, ISBN, subject or curriculum"
           value={filters.q}
           onChange={(e) => set("q", e.target.value)}
         />
         <button
           className="button small filter-toggle"
+          type="button"
+          aria-expanded={showFilters}
+          aria-controls="book-filters"
           onClick={() => setShowFilters(!showFilters)}
         >
           <SlidersHorizontal size={16} /> Filters
         </button>
       </div>
       <div className="market-layout">
-        <aside className={showFilters ? "filters shown" : "filters"}>
+        <aside
+          id="book-filters"
+          aria-label="Filter books"
+          className={showFilters ? "filters shown" : "filters"}
+        >
           <div className="filter-heading">
             <strong>
               <SlidersHorizontal size={17} /> Refine your shelf
             </strong>
-            <button
-              onClick={() =>
-                setFilters({
-                  q: "",
-                  curriculum: "",
-                  subject: "",
-                  status: "available",
-                  condition: "",
-                  min: "",
-                  max: "",
-                  sort: "recent",
-                })
-              }
-            >
+            <button type="button" onClick={reset}>
               Reset
             </button>
           </div>
@@ -403,6 +433,8 @@ export function Browse() {
               <input
                 type="number"
                 min="0"
+                step="0.01"
+                inputMode="decimal"
                 placeholder="Min"
                 aria-label="Minimum price"
                 value={filters.min}
@@ -412,6 +444,8 @@ export function Browse() {
               <input
                 type="number"
                 min="0"
+                step="0.01"
+                inputMode="decimal"
                 placeholder="Max"
                 aria-label="Maximum price"
                 value={filters.max}
@@ -429,9 +463,9 @@ export function Browse() {
             <p>Every book deserves another curious mind.</p>
           </div>
         </aside>
-        <div>
+        <div aria-busy={loading}>
           <div className="results-header">
-            <span>
+            <span role="status" aria-live="polite">
               {loading
                 ? "Finding books…"
                 : `${books.length} book${books.length === 1 ? "" : "s"} on the shelf`}
@@ -451,8 +485,11 @@ export function Browse() {
             </label>
           </div>
           {error ? (
-            <ErrorBox message={error} />
-          ) : loading ? (
+            <ErrorBox
+              message={error}
+              onRetry={() => setRetry((value) => value + 1)}
+            />
+          ) : loading && !books.length ? (
             <Loading />
           ) : books.length ? (
             <div className="book-grid browse-grid">
@@ -465,6 +502,9 @@ export function Browse() {
               <BookOpen size={38} />
               <h2>No books on this shelf yet.</h2>
               <p>Try a different search or reset your filters.</p>
+              <button type="button" className="button outline" onClick={reset}>
+                Reset filters
+              </button>
               <AppLink href="/sell" className="button">
                 Be the first to list a book <Plus size={16} />
               </AppLink>
@@ -480,13 +520,22 @@ export function useBook(id: string) {
       listing: Book;
       images: { id: string }[];
     } | null>(null),
-    [error, setError] = useState("");
+    [error, setError] = useState(""),
+    [retry, setRetry] = useState(0);
   useEffect(() => {
-    api("/listings/" + id)
-      .then(setData)
-      .catch((e) => setError(e.message));
-  }, [id]);
-  return { data, error };
+    const controller = new AbortController();
+    setData(null);
+    setError("");
+    api("/listings/" + id, { signal: controller.signal })
+      .then((value) => {
+        if (!controller.signal.aborted) setData(value);
+      })
+      .catch((e) => {
+        if (!controller.signal.aborted) setError(e.message);
+      });
+    return () => controller.abort();
+  }, [id, retry]);
+  return { data, error, reload: () => setRetry((value) => value + 1) };
 }
 export function Product({
   id,
@@ -498,12 +547,12 @@ export function Product({
   navigate: (p: string) => void;
   notify: (m: string) => void;
 }) {
-  const { data, error } = useBook(id),
+  const { data, error, reload } = useBook(id),
     [photo, setPhoto] = useState("");
   if (error)
     return (
       <section className="section">
-        <ErrorBox message={error} />
+        <ErrorBox message={error} onRetry={reload} />
       </section>
     );
   if (!data) return <Loading />;
@@ -520,9 +569,20 @@ export function Product({
           </div>
           {data.images.length > 1 && (
             <div className="thumbnails">
-              {data.images.map((i) => (
-                <button key={i.id} onClick={() => setPhoto(i.id)}>
-                  <img src={"/api/images/" + i.id} alt="Book photo" />
+              {data.images.map((i, index) => (
+                <button
+                  key={i.id}
+                  type="button"
+                  aria-label={"View book photo " + (index + 1)}
+                  aria-pressed={(photo || b.image_id) === i.id}
+                  onClick={() => setPhoto(i.id)}
+                >
+                  <img
+                    src={"/api/images/" + i.id}
+                    alt=""
+                    loading="lazy"
+                    decoding="async"
+                  />
                 </button>
               ))}
             </div>
