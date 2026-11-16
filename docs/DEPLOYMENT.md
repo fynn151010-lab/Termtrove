@@ -1,5 +1,7 @@
 # Deploy TermTrove independently
 
+The current public deployment is https://termtrove.onrender.com. It was created directly through the Render connection as one Free Node web service; `render.yaml` remains a reusable deployment reference. The running service uses the default TCP health check, while `npm run check:deployment` separately verifies database readiness through `/api/health`. A future Blueprint import must deliberately adopt the intended service rather than creating a duplicate.
+
 The repository is source hosting. Vercel (or another Node host) serves the app; Supabase provides PostgreSQL, password authentication and private photo storage. Neither the browser nor the server requires ChatGPT, an OpenAI account, an OpenAI API key, Sites, or Cloudflare bindings.
 
 No hosted Supabase project or Vercel account is created by the source code. The maintainer must own those accounts and supply the settings below. Do not purchase upgrades to follow these steps. Review the providers’ current free-plan eligibility and quotas in your account. If a feature requires a paid upgrade, stop rather than entering payment information.
@@ -13,6 +15,12 @@ No hosted Supabase project or Vercel account is created by the source code. The 
 5. Configure a production SMTP sender in Authentication → Email/SMTP for sign-up and recovery messages. Supabase’s built-in email sender is intended for development and restricts delivery/rate, so it is insufficient for arbitrary public users. Choose an existing/free compatible sender and verify a sending address/domain you control; do not buy one without explicit permission. Keep SMTP credentials only in Supabase settings.
 
 Do not load sample data in production unless deliberately requested. `supabase/seed.sql` is optional local sample content and cannot be purchased.
+
+### Optional Gmail sender for a small pilot
+
+If the owner chooses their existing Gmail address, Supabase SMTP can use `smtp.gmail.com`, port `587` (STARTTLS), the full Gmail address as both username and sender address, and an owner-created Google app password. Set sender name to `TermTrove`. Google requires 2-Step Verification and may restrict app-password availability for some accounts. Keep the app password only in Supabase's SMTP Password field; never use or share the account's normal password. This authorizes account access through that credential, so the owner must create and enter it themselves and can revoke it in Google Account settings. Gmail's sending limits still apply, and actual delivery must be verified before relying on it for onboarding.
+
+Official references: [Google app passwords](https://support.google.com/mail/answer/185833?hl=en), [Google SMTP settings](https://support.google.com/mail/answer/7104828), [Supabase SMTP configuration](https://supabase.com/docs/guides/auth/auth-smtp). No sender account or app password is provisioned by this repository.
 
 ## 2. Vercel project (your account)
 
