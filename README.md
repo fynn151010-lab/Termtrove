@@ -4,14 +4,14 @@ An independent marketplace for pre-loved educational books in Bangkok. Students 
 
 **Source repository:** https://github.com/fynn151010-lab/Termtrove
 
-**Public deployment:** https://termtrove.onrender.com — hosted on Render's Free web-service plan with Supabase. The homepage, public API, private-dashboard access control, logo, sitemap and crawler configuration have passed deployed checks. Production email delivery and owner-approved launch wording still require completion before public account onboarding is considered verified. The free host sleeps after inactivity, so an initial visit may take about a minute.
+**Public deployment:** https://termtrove-bangkok.netlify.app — hosted on Netlify's Free plan with the existing Supabase project. Pages are delivered from a CDN and the Node API runs as serverless functions, avoiding Render's idle-service wake-up page. All ten read-only deployed checks pass. Serverless API requests can still have ordinary cold-start latency, and both providers have free usage limits. Email redirect settings, production email delivery and owner-approved launch wording still require completion before public onboarding is considered verified. The former Render deployment remains a temporary fallback.
 
 This is the complete application source, not a GitHub Pages mockup. The existing forest-green design, educational mission and pages are preserved. The approved book-and-box logo is included at `public/brand/termtrove-logo.png` and used in the header and footer. It was extracted unchanged from the TermTrove Google document’s Implementation Roadmap tab. The original image retains its white background; CSS frames its whitespace without changing the artwork.
 
 ## Stack
 
 - React + TypeScript and Vite preserve the existing frontend.
-- Node 22+ runs the API locally, on Vercel Functions, or on a standard Node host.
+- Node 22+ runs the API on Netlify Functions, locally, or on a standard Node host. A Vercel adapter is also retained.
 - Supabase Auth provides real email/password signup, email confirmation, login, logout, persistent cookie sessions and forgotten-password recovery.
 - PostgreSQL stores profiles, listings, photo metadata, orders, private collection messages and contact submissions. Row-level security and restricted transactional functions authorize writes.
 - Supabase Storage persists private book images. The same-origin API checks access before serving them.
@@ -40,7 +40,7 @@ npm run build
 npm start
 ```
 
-For Vercel, import the GitHub repository and set the server environment variables. A free-plan Render Blueprint is also included for a standard Node deployment; account eligibility and limits must be checked before deploying. The checked-in `vercel.json` supplies routing and security headers. See [Deployment](docs/DEPLOYMENT.md) for the exact Supabase and hosting steps, email templates, and launch checks.
+For Netlify, use the checked-in `netlify.toml`: build `npm run build`, publish `dist/client`, Node 22. Set the server environment variables in your own Free account. `netlify/functions/marketplace.ts` routes `/api/*` to the same real Supabase API. The function packages Sharp's native Linux dependencies for photo processing and preserves separate HttpOnly session cookies. Netlify's default private-project setting must be changed to public for visitors. See [Deployment](docs/DEPLOYMENT.md) for deployment commands, free-plan limits, email templates and checks. The Render Blueprint and Vercel adapter remain available alternatives.
 
 ## Fully local real backend
 
@@ -92,6 +92,8 @@ server/
   config.ts             Server configuration and safe return paths
   node.ts, dev.ts       Standard Node adapters and local/production server
 api/index.ts            Vercel server-function adapter
+netlify/functions/      Netlify Web Request/Response function
+netlify.toml            CDN, SPA fallback, function packaging and security headers
 supabase/
   migrations/           PostgreSQL schema, RLS, storage and transactional functions
   seed.sql              Clearly labelled optional local samples
@@ -113,7 +115,7 @@ docs/DEPLOYMENT.md      Account setup, free-plan constraints and launch checks
 - Buyer or seller can cancel a pending order, restoring inventory. Only the seller can confirm collection and payment, which completes the order and marks the book sold.
 - Collection messages are visible only to the buyer and seller. No residential address or email is added automatically to a public listing.
 - Password sessions use HttpOnly, SameSite=Lax cookies, Secure over HTTPS; token refresh writes cookies back to each response. Mutation requests require the configured application Origin. Auth callbacks validate same-origin return destinations.
-- Image uploads decode JPEG/PNG/WebP, cap input at 20 megapixels, remove embedded EXIF/GPS metadata, resize to at most 2,000 pixels per side, and store WebP. Each upload is limited to 3 MB; listings accept 1–5 photos. Private Storage bucket policies also enforce owner paths and MIME/size limits. The 3 MB limit keeps requests below Vercel’s function body limit.
+- Image uploads decode JPEG/PNG/WebP, cap input at 20 megapixels, remove embedded EXIF/GPS metadata, resize to at most 2,000 pixels per side, and store WebP. Each upload is limited to 3 MB; listings accept 1–5 photos. Private Storage bucket policies also enforce owner paths and MIME/size limits. Adapters cap request bodies at 4 MB, below Netlify's effective binary request limit.
 - The listing form prepares phone photos on the user's device first: supported source files up to 20 MB are reduced to at most 2,000 pixels per side and below the 3 MB upload limit. Orientation is preserved; server-side decoding, limits and metadata removal remain authoritative. HEIC files must be exported as JPEG if the browser does not provide a supported format.
 - Payment is on collection. “Paid” means the seller confirmed in-person payment, not a processor-verified charge. No online payment is simulated.
 
@@ -137,4 +139,4 @@ Mobile controls have readable 16 px input text and at least 44 px touch targets.
 
 `npm run build:preview` creates a separate, clearly labelled visual preview in `dist/preview`, intended for GitHub Pages at `/Termtrove/`. It displays only labelled sample books so the interface can be reviewed without a backend. Account creation, authentication, listing publication, orders and messages are disabled; no sessions or successful payments are simulated. This flag is not enabled in the normal production build, which continues to require real Supabase services.
 
-The generated files are published on the `gh-pages` branch. The repository owner can activate the free Pages preview in Settings → Pages → Deploy from a branch → `gh-pages` → `/(root)`. This is a visual-review URL, not the independent live marketplace deployment. The full app still deploys through Vercel/Render/another Node host with Supabase.
+The generated files are published on the `gh-pages` branch. The repository owner can activate the free Pages preview in Settings → Pages → Deploy from a branch → `gh-pages` → `/(root)`. This is a visual-review URL, not the independent live marketplace deployment. The full app is available on Netlify with Supabase at the public URL above.

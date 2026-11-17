@@ -12,5 +12,13 @@
     "allowImportingTsExtensions": true,
     "noEmit": true
   },
-  "include": ["app", "server", "api", "tests", "db", "vite.config.ts"]
+  "include": [
+    "app",
+    "server",
+    "api",
+    "netlify",
+    "tests",
+    "db",
+    "vite.config.ts"
+  ]
 }

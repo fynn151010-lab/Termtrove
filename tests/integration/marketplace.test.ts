@@ -3,6 +3,7 @@ import { test, before } from "node:test";
 import assert from "node:assert/strict";
 import { createClient } from "@supabase/supabase-js";
 import { handleAPI } from "../../server/api";
+import marketplace from "../../netlify/functions/marketplace";
 import { readConfig } from "../../server/config";
 const config = readConfig();
 if (!["localhost", "127.0.0.1"].includes(new URL(config.supabaseUrl).hostname))
@@ -24,7 +25,8 @@ class Browser {
     if (!["GET", "HEAD"].includes(method)) headers.set("origin", config.origin);
     if (data && !(data instanceof FormData))
       headers.set("content-type", "application/json");
-    const response = await handleAPI(
+    // Run real auth, uploads and orders through the deployed function adapter.
+    const response = await marketplace(
       new Request(config.origin + "/api" + path, {
         method,
         headers,
@@ -35,7 +37,6 @@ class Browser {
               ? JSON.stringify(data)
               : undefined,
       }),
-      config,
     );
     for (const item of response.headers.getSetCookie()) {
       const cookie = item.split(";")[0],
