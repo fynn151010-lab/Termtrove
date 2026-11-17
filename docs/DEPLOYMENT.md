@@ -1,10 +1,10 @@
 # Deploy TermTrove independently
 
-The current public deployment is https://termtrove.onrender.com. It was created directly through the Render connection as one Free Node web service; `render.yaml` remains a reusable deployment reference. The running service uses the default TCP health check, while `npm run check:deployment` separately verifies database readiness through `/api/health`. A future Blueprint import must deliberately adopt the intended service rather than creating a duplicate.
+The current public deployment is **https://termtrove-bangkok.netlify.app**, in the owner's Termtrove Netlify team on the **Free** plan. The account has a 300-credit monthly hard limit and no payment method. The former https://termtrove.onrender.com deployment remains available as a temporary fallback while email configuration is completed. No database or Storage migration is needed: both hosts use the existing `termtrove` Supabase project.
 
-The repository is source hosting. Vercel (or another Node host) serves the app; Supabase provides PostgreSQL, password authentication and private photo storage. Neither the browser nor the server requires ChatGPT, an OpenAI account, an OpenAI API key, Sites, or Cloudflare bindings.
+GitHub hosts the source. Netlify serves the static frontend from its CDN and runs the Node API as functions; Supabase provides PostgreSQL, password authentication and private photo storage. Neither the browser nor the server requires ChatGPT, an OpenAI account, an OpenAI API key, Sites, or Cloudflare bindings.
 
-No hosted Supabase project or Vercel account is created by the source code. The maintainer must own those accounts and supply the settings below. Do not purchase upgrades to follow these steps. Review the providers’ current free-plan eligibility and quotas in your account. If a feature requires a paid upgrade, stop rather than entering payment information.
+The maintainer owns the hosting and Supabase accounts. Do not purchase upgrades to follow these steps. Review the providers' current free-plan eligibility and quotas in your account. If a feature requires a paid upgrade, stop rather than entering payment information.
 
 ## 1. Supabase project (your account)
 
@@ -22,23 +22,49 @@ If the owner chooses their existing Gmail address, Supabase SMTP can use `smtp.g
 
 Official references: [Google app passwords](https://support.google.com/mail/answer/185833?hl=en), [Google SMTP settings](https://support.google.com/mail/answer/7104828), [Supabase SMTP configuration](https://supabase.com/docs/guides/auth/auth-smtp). No sender account or app password is provisioned by this repository.
 
-## 2. Vercel project (your account)
+## 2. Netlify Free deployment
 
-1. Sign in to https://vercel.com and import `fynn151010-lab/Termtrove` from GitHub. Grant access only to the intended repository.
-2. Select an available free plan only if your use is eligible for its terms. Vercel’s Hobby plan is intended for personal/non-commercial use; confirm eligibility for your marketplace rather than assuming every marketplace qualifies. Stop if the dashboard requires a paid plan. The application also supports any Node 22 host via `npm run build` then `npm start`, but Supabase remains required.
-3. Vercel should detect Vite. Root directory: repository root. Build: `npm run build`. Output: `dist/client`. Node: 22+. `vercel.json` already maps `/api/*` to the server function and other application routes to the frontend.
-4. Add **server-side** environment variables to Production (and separately to Preview if used):
+The existing project is `termtrove-bangkok`, ID `3ef1c725-cd9b-4422-a119-b8a352491a03`, in the `fynn151010-lab` team. Use it rather than creating duplicate sites. [Project dashboard](https://app.netlify.com/projects/termtrove-bangkok).
 
-| Variable                   | Value                                                              |
-| -------------------------- | ------------------------------------------------------------------ |
-| `SUPABASE_URL`             | Your Supabase project URL                                          |
-| `SUPABASE_PUBLISHABLE_KEY` | Your publishable or legacy anon key                                |
-| `APP_ORIGIN`               | Your exact `https://…vercel.app` production origin, without a path |
+1. Sign in to Netlify and use the **Free** team. Netlify supports commercial projects on Free; paid features are unnecessary here.
+2. Use Node 22, the repository root, build `npm run build`, publish `dist/client`, and functions directory `netlify/functions`. These are checked in as `netlify.toml`.
+3. Add the following **server-side** environment variables to the project:
+
+| Variable                   | Value                                   |
+| -------------------------- | --------------------------------------- |
+| `SUPABASE_URL`             | Your Supabase project URL               |
+| `SUPABASE_PUBLISHABLE_KEY` | Your publishable or legacy anon key     |
+| `APP_ORIGIN`               | `https://termtrove-bangkok.netlify.app` |
+| `NODE_ENV`                 | `production`                            |
 
 Do not prefix these with `VITE_`: the browser communicates only with same-origin API routes. No Supabase credentials or session tokens are bundled into the frontend. `APP_ORIGIN` is used for CSRF checks and confirmation/recovery links, not inferred from untrusted request headers.
 
-5. If Vercel has not assigned the production URL yet, create the project, note its assigned production domain, then set `APP_ORIGIN` and redeploy. The homepage can render while configuration is incomplete, but the backend will return a clear 503 setup error; do not announce a working marketplace before configuration and checks pass.
-6. Keep production access public. Vercel preview deployments may have deployment protection; do not confuse a protected preview URL with the public production URL.
+4. Use the official Netlify CLI, tested with version 27.20.0. `netlify login` authorizes your own account; `netlify login --request "Deploy TermTrove Free"` also supports an account-owner authorization link without sharing passwords or tokens. Keep the generated CLI credentials out of source control.
+
+```sh
+netlify link --id 3ef1c725-cd9b-4422-a119-b8a352491a03
+netlify build --context production
+# Optional draft deployment for review; does not publish the main address:
+netlify deploy --context production
+# Publish the verified code:
+netlify deploy --prod --context production
+npm run check:deployment -- https://termtrove-bangkok.netlify.app
+```
+
+Use the correct production `APP_ORIGIN` for the build, too, so `scripts/seo.mjs` generates the new sitemap. Keep local `.env` files ignored and do not import a localhost origin into production. `.netlify/` contains local state and function archives and is also ignored. Static deploys without the function bundle do not run the marketplace backend.
+
+5. Under Project configuration → General → Visitor access, make production **Public**. New Netlify teams can create private projects by default, which return a Netlify login wall to visitors. The current deployment has been made public and verified without authentication. Account and order access remain protected by the application and Supabase RLS.
+6. Update Supabase's email URLs as described below. Keep the Render callback allowlist entry temporarily for emails issued before the switch. Sessions are scoped to each hostname, so users sign in again on the new address.
+
+The API uses Netlify's Web Request/Response runtime directly. Function path patterns `/api` and `/api/*` preserve callback query strings and take priority over the SPA fallback. `external_node_modules = ["sharp"]` includes native Linux image processing dependencies. The adapter caps streamed request bodies at 4 MB even when Content-Length is missing or false, preserves multiple Set-Cookie headers and applies the same security headers as the frontend. No function result is publicly cached.
+
+### Free-plan behavior and updates
+
+The CDN frontend does not have Render's 15-minute idle-service sleep. API functions may have ordinary serverless cold-start latency. Free hosting does not provide unlimited capacity or an availability guarantee. As verified on 17 November 2026, Netlify Free includes 300 credits per month with a hard cap and no automatic recharge: production deploys consume 15 credits, function compute 10 credits/GB-hour, requests 2 credits/10,000, and bandwidth 20 credits/GB. Usage can pause the site until the allowance resets. Review current [Netlify pricing documentation](https://docs.netlify.com/manage/accounts-and-billing/billing/billing-for-credit-based-plans/credit-based-pricing-plans/); do not upgrade or add a payment method.
+
+The site was deployed through the CLI. GitHub pushes alone do not currently redeploy it. Future maintainers can use the commands above after checks pass. Connecting Netlify's GitHub integration for automatic deployment requires the owner to approve its repository access; the existing GitHub connection cannot manage deployment keys. This is optional for running the published website. Do not copy an unrelated connector token into Netlify or GitHub Actions to bypass that authorization.
+
+New Free projects may show Netlify's badge. Do not weaken the application Content Security Policy to enable an injected script, or purchase a plan to remove branding.
 
 ## 3. Confirmation and password reset URLs
 
@@ -93,7 +119,7 @@ Use two ordinary email accounts you control; complete email verification for eac
 7. Request password reset and follow the real email link. Confirm the old password fails and the new password works. Log out and verify account pages require sign-in.
 8. Check phone-width layouts and keyboard operation.
 
-The automated integration suite runs the same core actions against real **local** Supabase services and Mailpit, not mock authentication. Production email delivery and the deployed Vercel environment must still be checked with your own provider configuration.
+The automated integration suite runs the same core actions against real **local** Supabase services and Mailpit, not mock authentication. Production email delivery and signed-in actions on the deployed host must still be checked with your own provider configuration.
 
 ## 5. Existing Site and data
 
@@ -111,7 +137,7 @@ For existing real data, privately export the old database and image objects, est
 
 ## Alternative: Render’s free Node service
 
-`render.yaml` is included for a standard Node host if Vercel’s free plan does not fit your use. In your own Render account, import the repository as a Blueprint and keep **Free** selected. Supply the Supabase URL and publishable key; never add a service-role key. The app uses Render’s automatic `RENDER_EXTERNAL_URL` as its origin unless you explicitly set `APP_ORIGIN`. Configure Supabase’s Site URL and allowed email redirects for that exact public domain.
+`render.yaml` is included for a standard Node host. The existing Render service is already deployed; do not import a duplicate Blueprint as part of this switch. Supply the Supabase URL and publishable key; never add a service-role key. The app uses Render’s automatic `RENDER_EXTERNAL_URL` as its origin unless you explicitly set `APP_ORIGIN`. Configure Supabase's Site URL and allowed email redirects for the active production domain.
 
 Direct setup links: [Supabase project setup](https://supabase.com/dashboard/new) · [Deploy this repository on Render](https://render.com/deploy?repo=https://github.com/fynn151010-lab/Termtrove). These links open the providers’ setup forms; they do not buy a plan or deploy by themselves.
 
