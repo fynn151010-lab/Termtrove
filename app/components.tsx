@@ -10,7 +10,7 @@ export function Brand({ footer = false }: { footer?: boolean }) {
     <AppLink className="brand" href="/" aria-label="TermTrove home">
       <span className="brand-logo">
         <img
-          src={import.meta.env.BASE_URL + "brand/termtrove-logo.png"}
+          src={import.meta.env.BASE_URL + "brand/termtrove-logo-small.webp"}
           alt=""
           width="48"
           height="48"
@@ -212,6 +212,7 @@ export function Footer() {
           <h4>Around TermTrove</h4>
           <AppLink href="/about">About Us</AppLink>
           <AppLink href="/how-it-works">How It Works</AppLink>
+          <AppLink href="/collection-guide">Collection guide</AppLink>
           <AppLink href="/faq">FAQ</AppLink>
           <AppLink href="/contact">Contact</AppLink>
         </div>

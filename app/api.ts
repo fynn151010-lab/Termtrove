@@ -24,5 +24,5 @@ export async function api(path: string, options: RequestInit = {}) {
     throw error;
   }
 }
-export const signIn = (path = logicalPath()) =>
+export const signIn = (path = logicalPath() + location.search) =>
   "/login?return_to=" + encodeURIComponent(path);

@@ -341,6 +341,9 @@ export function Browse() {
   }, [filters, retry]);
   const set = (k: string, v: string) =>
     setFilters((previous) => ({ ...previous, [k]: v }));
+  const filtered = Object.entries(defaultFilters).some(
+    ([key, value]) => key !== "sort" && value !== filters[key],
+  );
   const reset = () => setFilters({ ...defaultFilters });
   return (
     <section className="section browse-page">
@@ -500,13 +503,27 @@ export function Browse() {
           ) : (
             <div className="empty">
               <BookOpen size={38} />
-              <h2>No books on this shelf yet.</h2>
-              <p>Try a different search or reset your filters.</p>
-              <button type="button" className="button outline" onClick={reset}>
-                Reset filters
-              </button>
+              <h2>
+                {filtered
+                  ? "No matching books."
+                  : "No books on this shelf yet."}
+              </h2>
+              <p>
+                {filtered
+                  ? "Try a different search or clear the filters."
+                  : "Have a textbook to pass on? List it for the next learner."}
+              </p>
+              {filtered && (
+                <button
+                  type="button"
+                  className="button outline"
+                  onClick={reset}
+                >
+                  Reset filters
+                </button>
+              )}
               <AppLink href="/sell" className="button">
-                Be the first to list a book <Plus size={16} />
+                List a book <Plus size={16} />
               </AppLink>
             </div>
           )}
@@ -669,6 +686,14 @@ export function Product({
               </p>
             </div>
           </div>
+          {!b.is_demo && (
+            <AppLink
+              className="text-link report-link"
+              href={"/contact?listing=" + encodeURIComponent(b.id)}
+            >
+              Report this listing
+            </AppLink>
+          )}
         </div>
       </div>
     </section>

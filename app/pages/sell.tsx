@@ -176,6 +176,7 @@ export function Sell({
               <div className="form-actions">
                 <button
                   className="button outline"
+                  disabled={busy}
                   onClick={() => setPreview(false)}
                 >
                   Keep editing

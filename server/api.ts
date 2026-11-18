@@ -160,7 +160,11 @@ export async function handleAPI(
       const u = await user();
       if (Number(req.headers.get("content-length") || 0) > 4 * 1024 * 1024)
         fail(413, "Choose a photo under 3 MB.");
-      const data = await req.formData(),
+      const data = await req
+          .formData()
+          .catch(() =>
+            fail(400, "Choose a photo and submit it as a file upload."),
+          ),
         file = data.get("image");
       if (
         !(file instanceof File) ||
@@ -190,11 +194,13 @@ export async function handleAPI(
     }
     const imageRoute = path.match(/^\/api\/images\/([^/]+)$/);
     if (imageRoute && method === "GET") {
-      const { data: image } = await db
-        .from("images")
-        .select("object_key")
-        .eq("id", uuid(imageRoute[1]))
-        .maybeSingle();
+      const image = checked(
+        await db
+          .from("images")
+          .select("object_key")
+          .eq("id", uuid(imageRoute[1]))
+          .maybeSingle(),
+      );
       if (!image) fail(404, "Image not found.");
       const file = checked(
         await db.storage.from("book-images").download(image.object_key),

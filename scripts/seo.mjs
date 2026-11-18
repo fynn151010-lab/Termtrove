@@ -33,7 +33,16 @@ if (origin) {
     .replaceAll("&", "&amp;")
     .replaceAll('"', "&quot;")
     .replaceAll("<", "&lt;");
-  const pages = ["/", "/browse", "/about", "/how-it-works", "/faq"];
+  const pages = [
+    "/",
+    "/browse",
+    "/about",
+    "/how-it-works",
+    "/faq",
+    "/collection-guide",
+    "/privacy",
+    "/terms",
+  ];
   writeFileSync(
     "dist/client/sitemap.xml",
     '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' +

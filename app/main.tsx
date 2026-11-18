@@ -39,6 +39,7 @@ function App() {
     menuButton = useRef<HTMLButtonElement>(null),
     navigation = useRef<HTMLElement>(null),
     header = useRef<HTMLElement>(null);
+  const initialSession = useRef<AbortController | null>(null);
   const notify = (msg: string) => {
     clearTimeout(noticeTimer.current);
     setNotice(msg);
@@ -68,6 +69,7 @@ function App() {
     };
     window.addEventListener("popstate", listener);
     const expired = () => {
+      initialSession.current?.abort();
       setUser(null);
       notify("Your session has ended. Please sign in again.");
     };
@@ -101,11 +103,16 @@ function App() {
       }
     };
     document.addEventListener("click", click);
-    api("/me")
-      .then((d) => setUser(d.user))
+    const controller = new AbortController();
+    initialSession.current = controller;
+    api("/me", { signal: controller.signal })
+      .then((d) => {
+        if (!controller.signal.aborted) setUser(d.user);
+      })
       .catch(() => {})
       .finally(() => setAuthReady(true));
     return () => {
+      controller.abort();
       window.removeEventListener("popstate", listener);
       window.removeEventListener("termtrove:session-expired", expired);
       document.removeEventListener("click", click);
@@ -225,12 +232,15 @@ function App() {
             path={path}
             navigate={navigate}
             onAuthenticated={async () => {
+              initialSession.current?.abort();
               const d = await api("/me");
               setUser(d.user);
             }}
           />
         ) : !authReady &&
-          (path === "/account" || path.startsWith("/checkout/")) ? (
+          (path === "/account" ||
+            path === "/contact" ||
+            path.startsWith("/checkout/")) ? (
           <Loading />
         ) : path === "/" ? (
           <Home />
@@ -247,9 +257,9 @@ function App() {
         ) : path.startsWith("/checkout/") ? (
           <Checkout id={path.split("/")[2]} {...ctx} />
         ) : path === "/account" ? (
-          <Dashboard setUser={setUser} {...ctx} />
+          <Dashboard key={user?.id || "guest"} setUser={setUser} {...ctx} />
         ) : (
-          <Info path={path} {...ctx} />
+          <Info path={path} user={user} />
         )}
       </main>
       <Footer />

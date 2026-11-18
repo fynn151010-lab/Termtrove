@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { test, before } from "node:test";
+import { test } from "node:test";
 import assert from "node:assert/strict";
 import { createClient } from "@supabase/supabase-js";
 import { handleAPI } from "../../server/api";

@@ -36,7 +36,10 @@ export function SignInGate({
           Sign in <ArrowUpRight size={18} />
         </AppLink>
         <AppLink
-          href={"/register?return_to=" + encodeURIComponent(logicalPath())}
+          href={
+            "/register?return_to=" +
+            encodeURIComponent(logicalPath() + location.search)
+          }
           className="button outline"
         >
           Create an account
@@ -65,7 +68,8 @@ export function AuthPage({
     ),
     [notice, setNotice] = useState(""),
     [busy, setBusy] = useState(false),
-    [confirm, setConfirm] = useState(false);
+    [confirm, setConfirm] = useState(false),
+    [showPassword, setShowPassword] = useState(false);
   const register = path === "/register",
     forgot = path === "/forgot-password",
     reset = path === "/reset-password";
@@ -219,7 +223,7 @@ export function AuthPage({
                   <input
                     required
                     name="password"
-                    type="password"
+                    type={showPassword ? "text" : "password"}
                     minLength={register || reset ? 12 : 1}
                     maxLength={128}
                     autoComplete={
@@ -240,12 +244,22 @@ export function AuthPage({
                   <input
                     required
                     name="confirm_password"
-                    type="password"
+                    type={showPassword ? "text" : "password"}
                     minLength={12}
                     maxLength={128}
                     autoComplete="new-password"
                   />
                 </label>
+              )}
+              {!forgot && (
+                <button
+                  className="password-toggle"
+                  type="button"
+                  aria-pressed={showPassword}
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  Show password{reset ? "s" : ""}
+                </button>
               )}
               {!register && !forgot && !reset && (
                 <AppLink className="auth-forgot" href="/forgot-password">
@@ -293,10 +307,8 @@ export function AuthPage({
             </p>
           )}
           <div className="auth-fineprint">
-            By using TermTrove, review our{" "}
-            <AppLink href="/terms">Terms</AppLink> and{" "}
-            <AppLink href="/privacy">Privacy Policy</AppLink>. Final approved
-            policy text is pending.
+            Read our <AppLink href="/terms">Terms</AppLink> and{" "}
+            <AppLink href="/privacy">Privacy Policy</AppLink>.
           </div>
         </form>
       )}

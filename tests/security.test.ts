@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { safeReturnTo, readConfig } from "../server/config";
+import { safeReturnTo } from "../server/config";
 import { assertSameOrigin, password, uuid } from "../server/http";
 import { handleAPI } from "../server/api";
 

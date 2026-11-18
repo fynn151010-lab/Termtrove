@@ -20,6 +20,18 @@ const pages: Record<string, [string, string]> = {
     "Frequently Asked Questions | TermTrove",
     "Answers about listing books, condition, collection, reservations and buying pre-loved textbooks.",
   ],
+  "/privacy": [
+    "Privacy Policy | TermTrove",
+    "Learn what buyers and sellers can see and how to manage your marketplace information.",
+  ],
+  "/terms": [
+    "Terms of Service | TermTrove",
+    "Guidelines for listing, reserving and exchanging educational books.",
+  ],
+  "/collection-guide": [
+    "Collection Guide | TermTrove",
+    "Plan a public meeting, check your textbook and pay on collection in Bangkok.",
+  ],
   "/login": [
     "Sign In | TermTrove",
     "Sign in to your independent TermTrove account.",

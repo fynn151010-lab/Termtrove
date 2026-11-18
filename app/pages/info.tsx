@@ -1,3 +1,4 @@
+import { PolicyPage } from "./policies";
 import { AppLink } from "../routing";
 import {
   ArrowRight,
@@ -7,7 +8,6 @@ import {
   Heart,
   Leaf,
   Plus,
-  ShieldCheck,
   ShoppingBag,
 } from "lucide-react";
 import { useState } from "react";
@@ -49,16 +49,18 @@ const faqs = [
 export function Info({
   path,
   user,
-  notify,
 }: {
   path: string;
   user: Profile | null;
-  notify: (s: string) => void;
-  navigate: (s: string) => void;
 }) {
   const [error, setError] = useState(""),
     [sent, setSent] = useState(""),
     [busy, setBusy] = useState(false);
+  const reportId = new URLSearchParams(location.search).get("listing");
+  const report =
+    reportId && /^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(reportId)
+      ? reportId
+      : "";
   if (path === "/about")
     return (
       <>
@@ -239,11 +241,7 @@ export function Info({
       <section className="section form-page">
         <div className="page-title">
           <span className="eyebrow">WE’RE LISTENING</span>
-          <h1>
-            Let’s talk books.
-            <br />
-            And everything around them.
-          </h1>
+          <h1>{report ? "Report a listing" : "Contact TermTrove"}</h1>
           <p>
             Questions, ideas, or feedback? Leave a message for the TermTrove
             team.
@@ -256,10 +254,7 @@ export function Info({
             <CheckCircle2 size={36} />
             <h2>Your message is saved.</h2>
             <p>Reference: {sent}</p>
-            <p>
-              The message has been stored for the TermTrove team. A response
-              time and contact email have not yet been announced.
-            </p>
+            <p>Keep this reference if you contact the team again.</p>
           </div>
         ) : (
           <form
@@ -304,7 +299,13 @@ export function Info({
             </label>
             <label>
               Your message
-              <textarea name="message" required maxLength={5000} rows={6} />
+              <textarea
+                name="message"
+                required
+                maxLength={5000}
+                rows={6}
+                defaultValue={report ? "Listing " + report + "\n" : ""}
+              />
             </label>
             <button disabled={busy} className="button">
               {busy ? "Saving…" : "Send message"} <ArrowUpRight size={18} />
@@ -317,38 +318,8 @@ export function Info({
         )}
       </section>
     );
-  if (path === "/terms" || path === "/privacy")
-    return (
-      <section className="section info-page narrow">
-        <span className="eyebrow">BEFORE THE NEXT CHAPTER</span>
-        <h1>{path === "/terms" ? "Terms of Service" : "Privacy Policy"}</h1>
-        <div className="callout">
-          <ShieldCheck />
-          <div>
-            <strong>Policy placeholder — awaiting approved text.</strong>
-            <p>
-              The official{" "}
-              {path === "/terms" ? "terms of service" : "privacy policy"} has
-              not yet been provided. This page is reserved for the approved
-              policy and is not a final legal document.
-            </p>
-          </div>
-        </div>
-        <h2>How the current MVP works</h2>
-        <p>
-          {path === "/terms"
-            ? "TermTrove connects buyers and sellers for educational books. Orders reserve a single book, and payment is made directly on collection. Sellers describe the condition and mark orders complete after receiving payment. Pending orders can be cancelled by either party."
-            : "Account authentication is handled securely by Supabase. TermTrove stores your display name, sign-in email, optional school preference, book listings, uploaded images, orders, collection notes and contact-form submissions. Public listings show your display name but not your sign-in email. Collection notes and order details are restricted to the buyer and seller."}
-        </p>
-        <p>
-          Contact details, operator information, retention rules and final legal
-          wording are awaiting approval.
-        </p>
-        <AppLink className="text-link" href="/contact">
-          Contact form <ArrowUpRight size={18} />
-        </AppLink>
-      </section>
-    );
+  if (["/terms", "/privacy", "/collection-guide"].includes(path))
+    return <PolicyPage path={path} />;
   return (
     <section className="section empty">
       <BookOpen size={40} />

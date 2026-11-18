@@ -18,12 +18,10 @@ import { useBook } from "./marketplace";
 export function Checkout({
   id,
   user,
-  navigate,
   notify,
 }: {
   id: string;
   user: Profile | null;
-  navigate: (p: string) => void;
   notify: (s: string) => void;
 }) {
   const { data, error, reload } = useBook(id),
@@ -78,7 +76,7 @@ export function Checkout({
           with the seller using your order’s collection note. Your order is
           saved in both dashboards.
         </p>
-        <AppLink href="/account" className="button">
+        <AppLink href="/account?tab=purchases" className="button">
           View your order <ArrowRight size={18} />
         </AppLink>
       </section>
@@ -145,10 +143,16 @@ export function Checkout({
             }
             type="submit"
           >
-            {busy ? "Reserving…" : "Confirm purchase · " + money(b.price)}{" "}
+            {busy ? "Reserving…" : "Reserve book · " + money(b.price)}{" "}
             <ArrowRight size={18} />
           </button>
-          <small>You can cancel a pending order from your dashboard.</small>
+          <small>
+            You can cancel a pending order from your dashboard.{" "}
+            <AppLink href="/collection-guide">
+              Read the collection guide
+            </AppLink>
+            .
+          </small>
         </form>
         <aside className="order-summary">
           <h3>Your next good find</h3>

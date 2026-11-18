@@ -11,14 +11,17 @@ export function Dashboard({
   user,
   setUser,
   notify,
-  navigate,
 }: {
   user: Profile | null;
   setUser: (u: Profile) => void;
   notify: (s: string) => void;
-  navigate: (s: string) => void;
 }) {
-  const [tab, setTab] = useState("listings"),
+  const [tab, setTab] = useState(() => {
+      const section = new URLSearchParams(location.search).get("tab");
+      return section && ["purchases", "sales", "profile"].includes(section)
+        ? section
+        : "listings";
+    }),
     [data, setData] = useState<any>(null),
     [error, setError] = useState(""),
     [pending, setPending] = useState(""),
@@ -91,7 +94,13 @@ export function Dashboard({
             key={id}
             className={tab === id ? "selected" : ""}
             aria-pressed={tab === id}
-            onClick={() => setTab(id)}
+            onClick={() => {
+              setTab(id);
+              setConfirm(null);
+              const url = new URL(location.href);
+              url.searchParams.set("tab", id);
+              history.replaceState(history.state, "", url);
+            }}
           >
             {label}
           </button>
