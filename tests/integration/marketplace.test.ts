@@ -178,6 +178,69 @@ test("photos persist privately; anonymous writes and invalid image types are rej
     401,
   );
 });
+test("only the owner can remove an unused photo, and removal cannot race with publication", async () => {
+  const disposable = await upload(seller);
+  const ownerId = (await seller.request("/me")).data.user.id;
+  const objectKey = ownerId + "/" + disposable;
+  assert.equal(
+    (await anonymous.request("/images/" + disposable, "DELETE")).status,
+    401,
+  );
+  assert.equal(
+    (await other.request("/images/" + disposable, "DELETE")).status,
+    403,
+  );
+  const raw = createClient(config.supabaseUrl, config.supabaseKey, {
+    auth: { persistSession: false },
+  });
+  assert.equal(
+    (
+      await raw.auth.signInWithPassword({
+        email: prefix + "-seller@example.test",
+        password: pass,
+      })
+    ).error,
+    null,
+  );
+  await raw.storage.from("book-images").remove([objectKey]);
+  assert.equal(
+    (await seller.request("/images/" + disposable)).status,
+    200,
+    "Direct storage deletion cannot bypass the removal state",
+  );
+  const requested = await raw.rpc("request_photo_removal", {
+    p_image_id: disposable,
+  });
+  assert.equal(requested.error, null);
+  const prematureFinish = await raw.rpc("finish_photo_removal", {
+    p_image_id: disposable,
+  });
+  assert.ok(
+    prematureFinish.error,
+    "Metadata stays locked until the stored object has been removed",
+  );
+  const attemptedPublication = await seller.request(
+    "/listings",
+    "POST",
+    listing([disposable]),
+  );
+  assert.equal(attemptedPublication.status, 400);
+  assert.match(attemptedPublication.data.error, /being removed/);
+  assert.equal(
+    (await seller.request("/images/" + disposable, "DELETE")).status,
+    200,
+  );
+  assert.equal((await seller.request("/images/" + disposable)).status, 404);
+  assert.ok(
+    (await raw.storage.from("book-images").download(objectKey)).error,
+    "The stored object must be deleted as well as its metadata",
+  );
+  assert.equal(
+    (await seller.request("/images/" + disposable, "DELETE")).status,
+    200,
+    "Removal retries are idempotent",
+  );
+});
 test("real listing creation, search, filters and ownership work through PostgreSQL RLS", async () => {
   assert.equal(
     (await other.request("/listings", "POST", listing())).status,
@@ -277,6 +340,46 @@ test("real listing creation, search, filters and ownership work through PostgreS
     direct.error,
     "Direct table mutation must be denied even to signed-in users",
   );
+});
+test("saving replacement photos cleans up old objects and preserves the selected cover order", async () => {
+  assert.equal(
+    (await seller.request("/images/" + photoId, "DELETE")).status,
+    409,
+    "Published photos cannot be deleted directly",
+  );
+  const first = await upload(seller),
+    second = await upload(seller);
+  const replaced = await seller.request("/listings/" + bookId, "PUT", {
+    ...listing([first, second]),
+    title: "Updated " + prefix,
+  });
+  assert.equal(replaced.status, 200);
+  const detail = await anonymous.request("/listings/" + bookId);
+  assert.equal(detail.data.listing.image_id, first);
+  assert.deepEqual(
+    detail.data.images.map((image: { id: string }) => image.id),
+    [first, second],
+  );
+  assert.equal(
+    (await seller.request("/images/" + photoId)).status,
+    404,
+    "An old photo is removed only after its listing update succeeds",
+  );
+  const reordered = await seller.request("/listings/" + bookId, "PUT", {
+    ...listing([second, first]),
+    title: "Updated " + prefix,
+  });
+  assert.equal(reordered.status, 200);
+  assert.equal(
+    (await anonymous.request("/listings/" + bookId)).data.listing.image_id,
+    second,
+  );
+  assert.equal(
+    (await anonymous.request("/images/" + first)).status,
+    200,
+    "Reordering must preserve both stored photos",
+  );
+  photoId = second;
 });
 test("concurrent buyers reserve exactly one book; orders appear only to participants", async () => {
   assert.equal(

@@ -34,6 +34,15 @@ export async function handleAPI(
     const context = requestClient(req, config!);
     finish = context.finish;
     const db = context.client;
+    async function removeUnusedPhoto(id: string) {
+      const objectKey = checked(
+        await db.rpc("request_photo_removal", { p_image_id: id }),
+      );
+      if (typeof objectKey !== "string")
+        fail(400, "This photo could not be removed. Please try again.");
+      checked(await db.storage.from("book-images").remove([objectKey]));
+      checked(await db.rpc("finish_photo_removal", { p_image_id: id }));
+    }
     assertSameOrigin(req, config!.origin);
     const authentication = await authRoute(req, db, config!);
     if (authentication) return finish(authentication);
@@ -177,22 +186,32 @@ export async function handleAPI(
       );
       const id = crypto.randomUUID(),
         object_key = u.id + "/" + id;
+      // Register ownership before uploading, so storage policies can validate it.
       checked(
-        await db.storage.from("book-images").upload(object_key, bytes, {
+        await db.from("images").insert({ id, owner_id: u.id, object_key }),
+      );
+      const uploaded = await db.storage
+        .from("book-images")
+        .upload(object_key, bytes, {
           contentType: "image/webp",
           upsert: false,
-        }),
-      );
-      const saved = await db
-        .from("images")
-        .insert({ id, owner_id: u.id, object_key });
-      if (saved.error) {
-        await db.storage.from("book-images").remove([object_key]);
-        checked(saved);
+        });
+      if (uploaded.error) {
+        try {
+          await removeUnusedPhoto(id);
+        } catch {
+          console.warn("An unsuccessful photo upload needs cleanup.");
+        }
+        checked(uploaded);
       }
       return json({ id }, 201);
     }
     const imageRoute = path.match(/^\/api\/images\/([^/]+)$/);
+    if (imageRoute && method === "DELETE") {
+      await user();
+      await removeUnusedPhoto(uuid(imageRoute[1]));
+      return json({ ok: true });
+    }
     if (imageRoute && method === "GET") {
       const image = checked(
         await db
@@ -220,7 +239,7 @@ export async function handleAPI(
       (path === "/api/listings" && method === "POST") ||
       (listingRoute && method === "PUT")
     ) {
-      await user();
+      const u = await user();
       const d = await body(req);
       const price = Number(d.price),
         original = d.original_price ? Number(d.original_price) : null;
@@ -261,12 +280,34 @@ export async function handleAPI(
           300,
         ),
       };
+      const photoIds = d.images.map(uuid);
+      const listingId = listingRoute ? uuid(listingRoute[1]) : null;
+      const oldPhotos = listingId
+        ? (checked(
+            await db
+              .from("images")
+              .select("id")
+              .eq("listing_id", listingId)
+              .eq("owner_id", u!.id),
+          ) ?? [])
+        : [];
       const id = checked(
         await db.rpc("save_listing", {
           p_data: data,
-          p_image_ids: d.images.map(uuid),
-          p_listing_id: listingRoute ? uuid(listingRoute[1]) : null,
+          p_image_ids: photoIds,
+          p_listing_id: listingId,
         }),
+      );
+      await Promise.all(
+        oldPhotos
+          .filter((photo) => !photoIds.includes(photo.id))
+          .map(async (photo) => {
+            try {
+              await removeUnusedPhoto(photo.id);
+            } catch {
+              console.warn("A replaced listing photo needs cleanup.");
+            }
+          }),
       );
       return json({ id }, listingRoute ? 200 : 201);
     }
