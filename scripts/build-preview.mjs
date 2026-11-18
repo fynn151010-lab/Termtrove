@@ -1,18 +1,9 @@
 import { execFileSync } from "node:child_process";
 import { readFileSync, writeFileSync, copyFileSync } from "node:fs";
 // No Supabase credentials are used or embedded by this read-only build.
-execFileSync(
-  process.execPath,
-  [
-    "node_modules/vite/bin/vite.js",
-    "build",
-    "--base",
-    "/Termtrove/",
-    "--outDir",
-    "dist/preview",
-  ],
-  { stdio: "inherit", env: { ...process.env, VITE_VISUAL_PREVIEW: "1" } },
-);
+execFileSync(process.execPath, ["scripts/build-client.mjs", "--preview"], {
+  stdio: "inherit",
+});
 const index = readFileSync("dist/preview/index.html", "utf8").replace(
   "<head>",
   '<head><meta name="robots" content="noindex,nofollow"/>',

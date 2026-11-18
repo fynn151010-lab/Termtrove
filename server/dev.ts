@@ -6,12 +6,13 @@ import { nodeHandler } from "./node";
 import { productionHeaders } from "./security";
 const port = Number(process.env.PORT || 5173),
   production = process.env.NODE_ENV === "production";
-const vite = production
-  ? null
-  : await (
-      await import("vite")
-    ).createServer({ server: { middlewareMode: true }, appType: "spa" });
-const root = resolve("dist/client");
+if (!production) {
+  const { execFileSync } = await import("node:child_process");
+  execFileSync(process.execPath, ["scripts/build-client.mjs", "--dev"], {
+    stdio: "inherit",
+  });
+}
+const root = resolve(production ? "dist/client" : "dist/dev");
 const mime: Record<string, string> = {
   ".js": "text/javascript",
   ".css": "text/css",
@@ -32,7 +33,7 @@ const server = createServer(async (req, res) => {
   res.setHeader("X-Content-Type-Options", "nosniff");
   res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
   if (req.url?.startsWith("/api/")) return nodeHandler(req, res);
-  if (vite) return vite.middlewares(req, res);
+
   if (!["GET", "HEAD"].includes(req.method || "GET")) {
     res.writeHead(405);
     res.end();

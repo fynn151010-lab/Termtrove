@@ -10,7 +10,7 @@ This is the complete application source, not a GitHub Pages mockup. The existing
 
 ## Stack
 
-- React + TypeScript and Vite preserve the existing frontend.
+- React and TypeScript power the frontend. esbuild bundles the application and self-hosted fonts.
 - Node 22+ runs the API on Netlify Functions, locally, or on a standard Node host. A Vercel adapter is also retained.
 - Supabase Auth provides real email/password signup, email confirmation, login, logout, persistent cookie sessions and forgotten-password recovery.
 - PostgreSQL stores profiles, listings, photo metadata, orders, private collection messages and contact submissions. Row-level security and restricted transactional functions authorize writes.
