@@ -205,6 +205,7 @@ export function Footer() {
         <div>
           <h4>The bookshelf</h4>
           <AppLink href="/browse">Browse Books</AppLink>
+          <AppLink href="/kits">Transition Kits</AppLink>
           <AppLink href="/sell">Sell a Book</AppLink>
           <AppLink href="/account">My Account</AppLink>
         </div>

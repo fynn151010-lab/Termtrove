@@ -1,3 +1,4 @@
+import { kits } from "../kits";
 import { PolicyPage } from "./policies";
 import { AppLink } from "../routing";
 import {
@@ -46,16 +47,13 @@ const faqs = [
     "The initial marketplace supports payment on collection only. No card details are collected and no online payment is taken. There is no configured online payment gateway.",
   ],
 ];
-export function Info({
-  path,
-  user,
-}: {
-  path: string;
-  user: Profile | null;
-}) {
+export function Info({ path, user }: { path: string; user: Profile | null }) {
   const [error, setError] = useState(""),
     [sent, setSent] = useState(""),
     [busy, setBusy] = useState(false);
+  const kit = kits.find(
+    (entry) => entry.id === new URLSearchParams(location.search).get("kit"),
+  );
   const reportId = new URLSearchParams(location.search).get("listing");
   const report =
     reportId && /^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(reportId)
@@ -241,10 +239,17 @@ export function Info({
       <section className="section form-page">
         <div className="page-title">
           <span className="eyebrow">WE’RE LISTENING</span>
-          <h1>{report ? "Report a listing" : "Contact TermTrove"}</h1>
+          <h1>
+            {report
+              ? "Report a listing"
+              : kit
+                ? "Request the " + kit.name
+                : "Contact TermTrove"}
+          </h1>
           <p>
-            Questions, ideas, or feedback? Leave a message for the TermTrove
-            team.
+            {kit && !report
+              ? "Tell us which items you need, your course requirements and your budget. Availability is confirmed separately. Sending a request does not reserve any items."
+              : "Questions, ideas, or feedback? Leave a message for the TermTrove team."}
           </p>
         </div>
         {!user ? (
@@ -304,11 +309,26 @@ export function Info({
                 required
                 maxLength={5000}
                 rows={6}
-                defaultValue={report ? "Listing " + report + "\n" : ""}
+                defaultValue={
+                  report
+                    ? "Listing " + report + "\n"
+                    : kit
+                      ? "Kit request: " +
+                        kit.name +
+                        "\nItems needed: " +
+                        kit.items.join(", ") +
+                        "\nCourse requirements: "
+                      : ""
+                }
               />
             </label>
             <button disabled={busy} className="button">
-              {busy ? "Saving…" : "Send message"} <ArrowUpRight size={18} />
+              {busy
+                ? "Saving…"
+                : kit && !report
+                  ? "Send kit request"
+                  : "Send message"}{" "}
+              <ArrowUpRight size={18} />
             </button>
             <small>
               Your message is stored privately. No email address is published on

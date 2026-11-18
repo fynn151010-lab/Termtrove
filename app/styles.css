@@ -4236,3 +4236,123 @@ dd {
   background: #e9eddf;
   border-radius: 5px;
 }
+
+.kits-page {
+  max-width: 1150px;
+  margin-inline: auto;
+}
+.kits-page .page-title p {
+  max-width: 57ch;
+}
+.kit-filters {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: 1rem;
+  background: var(--cream);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1.2rem;
+}
+.kit-filters label {
+  display: grid;
+  gap: 0.4rem;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+.kit-filters input,
+.kit-filters select {
+  width: 100%;
+  min-width: 0;
+  height: 44px;
+  border: 1px solid #9eae9f;
+  background: white;
+  border-radius: 5px;
+  padding: 0 0.75rem;
+  color: var(--green);
+}
+.kit-search {
+  display: block;
+  position: relative;
+}
+.kit-search svg {
+  position: absolute;
+  left: 0.75rem;
+  top: 13px;
+  pointer-events: none;
+}
+.kit-search input {
+  padding-left: 2.45rem;
+}
+.kit-count {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 3.5rem;
+  font-size: 0.9rem;
+}
+.kit-count button {
+  background: none;
+  text-decoration: underline;
+  color: var(--green);
+  min-height: 44px;
+}
+.kits-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.15rem;
+}
+.kit-card {
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: clamp(1.15rem, 3vw, 2rem);
+}
+.kit-caption {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  font-size: 0.82rem;
+  color: var(--green);
+}
+.kit-card h2 {
+  font-size: clamp(1.7rem, 3vw, 2.4rem);
+  margin: 1rem 0 0.5rem;
+}
+.kit-card p,
+.kit-card li {
+  font-size: 0.95rem;
+  line-height: 1.55;
+}
+.kit-card ul {
+  padding-left: 1.25rem;
+  margin: 1rem 0;
+  list-style: disc;
+}
+.kit-card .kit-check {
+  border-left: 3px solid var(--lime);
+  padding-left: 0.8rem;
+  margin-bottom: 1.2rem;
+}
+.kit-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.1rem;
+  margin-top: auto;
+}
+.kit-actions a {
+  min-height: 44px;
+}
+@media (max-width: 700px) {
+  .kits-grid {
+    grid-template-columns: 1fr;
+  }
+  .kit-filters {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .kit-filters label:first-child {
+    grid-column: 1/-1;
+  }
+}

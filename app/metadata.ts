@@ -4,6 +4,10 @@ const pages: Record<string, [string, string]> = {
     "TermTrove — Affordable Second-Hand Textbooks in Bangkok",
     "Buy and sell pre-loved textbooks and educational books with Bangkok’s student-led TermTrove community.",
   ],
+  "/kits": [
+    "Transition Kits | TermTrove",
+    "Find a checklist of textbooks and equipment for your course, browse matching books and request help sourcing a kit.",
+  ],
   "/browse": [
     "Browse Second-Hand Textbooks | TermTrove",
     "Find pre-loved IGCSE, GCSE, A Level and IB textbooks by title, ISBN, subject, price and condition.",

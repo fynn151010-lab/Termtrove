@@ -8,6 +8,7 @@ import { AuthPage } from "./auth";
 import { updateMetadata } from "./metadata";
 import { Brand, Footer, Loading } from "./components";
 import { Dashboard } from "./pages/account";
+import { Kits } from "./pages/kits";
 import { Checkout } from "./pages/checkout";
 import { Info } from "./pages/info";
 import { Browse, Home, Product } from "./pages/marketplace";
@@ -167,6 +168,7 @@ function App() {
             {[
               ["/", "Home"],
               ["/browse", "Browse Books"],
+              ["/kits", "Kits"],
               ["/sell", "Sell a Book"],
               ["/how-it-works", "How It Works"],
               ["/about", "About Us"],
@@ -246,6 +248,8 @@ function App() {
           <Home />
         ) : path === "/browse" ? (
           <Browse />
+        ) : path === "/kits" ? (
+          <Kits />
         ) : path.startsWith("/book/") ? (
           <Product id={path.split("/")[2]} {...ctx} />
         ) : path === "/sell" || path.startsWith("/edit/") ? (

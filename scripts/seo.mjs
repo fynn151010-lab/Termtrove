@@ -36,6 +36,7 @@ if (origin) {
   const pages = [
     "/",
     "/browse",
+    "/kits",
     "/about",
     "/how-it-works",
     "/faq",
